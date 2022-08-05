@@ -38,11 +38,6 @@ export default {
 		};
 		return map[a] + map[b];
 	},
-	// 获取生肖
-	GetChineseZodiac(year) {
-		const animals = ['猴', '鸡', '狗', '猪', '鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊'];
-		return animals[year % 12];
-	},
 	// 获取五行
 	Get5Elements(str, type = 't') {
 		let list = [];

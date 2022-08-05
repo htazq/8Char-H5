@@ -11,6 +11,7 @@ export const useBaziStore = defineStore('bazi', {
 			yinli: null,
 			yangli: null,
 			xinzuo: null,
+			chinese_zodiac:null,
 			// 四柱
 			sizhu: {
 				year: null,
@@ -104,7 +105,7 @@ export const useBaziStore = defineStore('bazi', {
 			const bazi = lunar.getEightChar();
 			const yun = bazi.getYun(gender);
 			this.yun = yun;
-
+			this.chinese_zodiac = lunar.getYearShengXiao()
 			// 称骨
 			const chenggu = utils.ChengGuComputed(bazi.getYear(),lunar.getMonth(),lunar.getDay(),lunar.getTimeZhiIndex())
 			this.chenggu = {
@@ -113,7 +114,7 @@ export const useBaziStore = defineStore('bazi', {
 				note:gender==1?chenggu.notes_man:chenggu.notes_woman,
 				total:chenggu.total,
 			}
-			
+
 			this.yinli = lunar.getYear() + '年' + lunar.getMonthInChinese() + '月' + lunar.getDayInChinese() + '  ' + bazi.getTimeZhi() + '时';
 			this.yangli = solar.toYmdHms().replace(/-/g, '/');
 

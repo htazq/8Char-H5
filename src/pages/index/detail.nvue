@@ -6,7 +6,7 @@
 			<view class="flex flex-wrap px-20 py-10">
 				<view style="width: 45%;">
 					<view><tm-text :label="'姓名：' + user_store.realname" _class="text-overflow-1"></tm-text></view>
-					<view><tm-text :label="'生肖：' + GetChineseZodiac(bazi_store.solar.year)"></tm-text></view>
+					<view><tm-text :label="'生肖：' + bazi_store.chinese_zodiac"></tm-text></view>
 					<view><tm-text :label="'性别：靓' + (user_store.gender ? '仔' : '女')"></tm-text></view>
 				</view>
 				<view style="width: 55%;">
@@ -77,6 +77,4 @@ function ChengGuClick(e) {
 		tg_show.value = true
 	}
 }
-
-const GetChineseZodiac = year => utils.GetChineseZodiac(year);
 </script>
