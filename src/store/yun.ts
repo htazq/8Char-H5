@@ -100,7 +100,9 @@ export const useYunStore = defineStore('yun', {
 
 			const dayun = original[current_index];
 			const year = dayun.getLiuNian();
-
+			
+			if(year.length == 0) return;
+			
 			const month = year[year_index].getLiuYue();
 
 			const month_list = [];
