@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { useYunStore } from './yun.ts';
 import { Solar } from 'lunar-javascript';
+
 import utils from '@/tool/utils.ts';
 
 export const useBaziStore = defineStore('bazi', {
@@ -80,6 +81,7 @@ export const useBaziStore = defineStore('bazi', {
 				day: null,
 				time: null
 			},
+			// 起运
 			start_yun: {
 				year: null,
 				month: null,
@@ -87,7 +89,9 @@ export const useBaziStore = defineStore('bazi', {
 				hour: null,
 				solar: null
 			},
-			table: []
+			table: [],
+			// 称骨
+			chenggu: {}
 		};
 	},
 	actions: {
@@ -96,10 +100,20 @@ export const useBaziStore = defineStore('bazi', {
 
 			const solar = Solar.fromDate(new Date(timestamp));
 			const lunar = solar.getLunar();
+
 			const bazi = lunar.getEightChar();
 			const yun = bazi.getYun(gender);
 			this.yun = yun;
 
+			// 称骨
+			const chenggu = utils.ChengGuComputed(bazi.getYear(),lunar.getMonth(),lunar.getDay(),lunar.getTimeZhiIndex())
+			this.chenggu = {
+				sign:gender==1?chenggu.man:chenggu.woman,
+				tip:gender==1?chenggu.types_man:chenggu.types_woman,
+				note:gender==1?chenggu.notes_man:chenggu.notes_woman,
+				total:chenggu.total,
+			}
+			
 			this.yinli = lunar.getYear() + '年' + lunar.getMonthInChinese() + '月' + lunar.getDayInChinese() + '  ' + bazi.getTimeZhi() + '时';
 			this.yangli = solar.toYmdHms().replace(/-/g, '/');
 

@@ -24,18 +24,29 @@
 				<tm-text :label="'起运公历：' + bazi_store.start_yun.solar"></tm-text>
 			</view>
 		</tm-sheet>
-		
+
+		<tm-sheet v-if="bazi_store.chenggu.sign" :round="3" :shadow="2" :margin="[20, 20]" :padding="[20, 20]" _class="mb-10">
+			<tm-modal hideCancel title="称骨分析" okText="关闭窗口" :content="tg_content" v-model:show="tg_show"></tm-modal>
+			<tm-text label="袁天罡称骨" class="text-weight-b pt-10" :font-size="30"></tm-text>
+			<tm-divider></tm-divider>
+			<tm-text :label="'重量: ' + bazi_store.chenggu.total" class="text-weight-b pb-30" @click="ChengGuClick(0)"></tm-text>
+			<tm-text :label="bazi_store.chenggu.sign" @click="ChengGuClick(1)"></tm-text>
+		</tm-sheet>
+
 		<yx-yun-scroll-list></yx-yun-scroll-list>
 	</tm-app>
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue';
 import { useBaziStore } from '@/store/bazi.ts';
 import { useUserStore } from '@/store/user.ts';
 import utils from '@/tool/utils.ts';
 
 const bazi_store = useBaziStore();
 const user_store = useUserStore();
+const tg_show = ref(false);
+const tg_content = ref("")
 
 if (user_store.timestamp === null) {
 	uni.redirectTo({
@@ -52,6 +63,19 @@ function GetStartYunLabel() {
 	if (start_yun.hour) str += start_yun.hour + '时';
 	str += '后起运';
 	return str;
+}
+
+function ChengGuClick(e) {
+	let content = null
+	if(e == 0){
+		content = bazi_store.chenggu.tip
+	}else{
+		content = bazi_store.chenggu.note
+	}
+	if(content){
+		tg_content.value = content
+		tg_show.value = true
+	}
 }
 
 const GetChineseZodiac = year => utils.GetChineseZodiac(year);
