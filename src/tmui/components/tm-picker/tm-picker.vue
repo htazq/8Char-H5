@@ -39,8 +39,8 @@ import tmPickerView from "../tm-picker-view/tm-picker-view.vue";
 import TmSheet from "../tm-sheet/tm-sheet.vue";
 import tmText from "../tm-text/tm-text.vue";
 import tmButton from "../tm-button/tm-button.vue";
-
-const {proxy} = getCurrentInstance()
+const drawer = ref<InstanceType<typeof tmDrawer> | null>(null)
+const proxy = getCurrentInstance()?.proxy??null;
 
 /**
  * 事件说明：
@@ -68,7 +68,7 @@ const props = defineProps({
 	modelStr:{
 		type:[String],
 		default:''
-	},
+	}, 
     //默认选中的索引值。
 	defaultValue:{
 		type:Array as PropType<Array<number|string>>,
@@ -134,9 +134,14 @@ const props = defineProps({
 const showCity = ref(true)
 const _colIndex: Ref<Array<number>> = ref([])
 const _data = computed(()=>props.columns)
-const _colStr = ref('')
+const _colStr = ref(props.modelStr)
 const aniover = ref(true)
-const win_bottom = uni.getWindowInfo()?.safeAreaInsets?.bottom??0
+let win_bottom = uni.getSystemInfoSync()?.safeAreaInsets?.bottom??0
+
+// #ifndef APP || MP-WEIXIN
+win_bottom = uni.getSystemInfoSync()?.safeArea?.bottom??0
+win_bottom = win_bottom>uni.getSystemInfoSync().windowHeight?0:win_bottom
+// #endif
 watchEffect(() => {
     showCity.value = props.show
 })
@@ -157,7 +162,7 @@ function confirm() {
     if (!aniover.value) return
     setVal();
     emits("confirm", toRaw(_colIndex.value))
-    proxy.$refs.drawer.close();
+    drawer.value?.close();
 }
 function cancel() {
      if (!aniover.value) return
@@ -219,7 +224,9 @@ function getIndexBymodel(vdata:Array<columnsItem> = [], model = "name", parentIn
                 }
             }
         }
-    }
+    }else{
+		_colIndex.value = [...value]
+	}
 
     return _colIndex.value;
 }

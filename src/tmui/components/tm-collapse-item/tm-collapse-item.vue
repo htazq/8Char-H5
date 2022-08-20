@@ -6,9 +6,9 @@
 			>
 			<view :style="{height:props.height+'rpx'}" :userInteractionEnabledn="false" class="flex-row-center-start flex-row ">
 				<view v-if="_tmCollapseIconPos=='left'" class="pr-16 flex-center">
-					<tm-icon  _class="opacity-7" :dark="props.dark"  :followDark="props.followDark"
-						 :color="isActive ? props.activeColor : ''"
-						:name="isActive ?  _tmCollapseopenIcon : _tmCollapsecloseIcon" :font-size="24"
+					<tm-icon  :dark="props.dark"  :followDark="props.followDark"
+						 :color="isActive ? props.activeColor : 'grey-1'"
+						:name="isActive ?  _tmCollapseopenIcon : _tmCollapsecloseIcon" :font-size="20"
 						></tm-icon>
 				</view>
 				<slot name="icon">
@@ -25,10 +25,9 @@
 				</view>
 				<slot name="rightLabel"></slot>
 				<view v-if="_tmCollapseIconPos=='right'" class="pl-16  flex-center" >
-					
-					<tm-icon  _class="opacity-7" :dark="props.dark"  :followDark="props.followDark"
-						 :color="isActive ? props.activeColor : ''"
-						:name="isActive ?  _tmCollapseopenIcon : _tmCollapsecloseIcon" :font-size="24"
+					<tm-icon  :dark="props.dark"  :followDark="props.followDark"
+						 :color="isActive ? props.activeColor : 'grey-1'"
+						:name="isActive ?  _tmCollapseopenIcon : _tmCollapsecloseIcon" :font-size="20"
 						></tm-icon>
 				</view>
 			</view>
@@ -64,7 +63,7 @@ import tmTranslate from "../tm-translate/tm-translate.vue";
 import {
 	custom_props,
 } from '../../tool/lib/minxs';
-const { proxy } = <ComponentInternalInstance>getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 const emits = defineEmits(['click'])
 const props = defineProps({
 	...custom_props,
@@ -78,7 +77,7 @@ const props = defineProps({
 	},
 	height: {
 		type: Number,
-		default: 80
+		default: 88
 	},
 	//标识，用来展开和关闭的标识。
 	name: {

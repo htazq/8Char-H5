@@ -10,7 +10,7 @@
 			:linear="props.linear"
 			:linearDeep="props.linearDeep"
 			>
-            <view class="flex flex-row "
+            <view class="flex flex-row " @click="inputClick($event,'ali')"
                 :class="[propsDetail.type == 'textarea' ? 'flex-row-top-center' : 'flex-row-center-center']"
                 :style="[{ height: `${_height}rpx` }]">
 
@@ -23,10 +23,10 @@
                     <tm-text :font-size="propsDetail.fontSize" :label="propsDetail.prefixLabel"></tm-text>
                 </view>
 
-                <view v-if="!isAndroid" @click="emits('click', $event)" class="flex-1 relative flex-row flex"
+                <view v-if="!isAndroid" @click.stop="inputClick" class="flex-1 relative flex-row flex"
                     :style="[{ width: '0px' }]">
                     <!-- <view @click.stop="emits('click',$event)" class=" l-0 t-0 flex-1 " :style="{height: `${_height}rpx`,background:'red'}"></view> -->
-                    <input class="flex-1" :userInteractionEnabled="false" v-if="propsDetail.type != 'textarea'"
+                    <input  class="flex-1" :userInteractionEnabled="false" v-if="propsDetail.type != 'textarea'"
                         :value="_value" :focus="propsDetail.focus" @focus="focus" @blur="blur" @confirm="confirm" @input="inputHandler"
                         @keyboardheightchange="emits('keyboardheightchange')" :password="showPasswordText"
                         :maxlength="propsDetail.maxlength" :disabled="propsDetail.disabled"
@@ -136,11 +136,14 @@
                     <tm-text :label="_valueLenChar"></tm-text>
                     <tm-text v-if="propsDetail.maxlength > 0" :label="'/' + propsDetail.maxlength"></tm-text>
                 </view>
-                <view v-if="propsDetail.showCharNumber && _valueLenChar > 0 && propsDetail.type == 'textarea'"
-                    class=" pl-16 flex-row flex absolute r-0 b-12">
-                    <tm-text :label="_valueLenChar"></tm-text>
-                    <tm-text v-if="propsDetail.maxlength > 0" :label="'/' + propsDetail.maxlength"></tm-text>
-                </view>
+                <!-- #ifndef MP-ALIPAY -->
+				<!-- 原因是支付宝小程序自带了计数器。会导致重叠。 -->
+				<view v-if="propsDetail.showCharNumber && _valueLenChar > 0 && propsDetail.type == 'textarea'"
+				    class=" pl-16 flex-row flex absolute r-0 b-12">
+				    <tm-text :label="_valueLenChar"></tm-text>
+				    <tm-text v-if="propsDetail.maxlength > 0" :label="'/' + propsDetail.maxlength"></tm-text>
+				</view>
+				<!-- #endif -->
                 <slot name="right">
                     <view v-if="propsDetail.search || propsDetail.searchLabel" class="pl-16">
                         <TmButton :followTheme="props.followTheme"
@@ -175,7 +178,7 @@ import { useTmpiniaStore } from '../../tool/lib/tmpinia';
 import TmButton from '../tm-button/tm-button.vue';
 const store = useTmpiniaStore();
 const emits = defineEmits(["focus", "blur", "confirm", "input", "update:modelValue", "clear", "search", "keyboardheightchange", 'click'])
-const { proxy } = getCurrentInstance()
+const proxy = getCurrentInstance()?.proxy??null;
 const props = defineProps({
     ...custom_props,
 	followTheme: {
@@ -371,7 +374,7 @@ const props = defineProps({
 	},
 })
 
-let parentFormItem = proxy.$parent
+let parentFormItem:any = proxy?.$parent
 while (parentFormItem) {
     if (parentFormItem?.tmFormComnameFormItem == 'tmFormComnameFormItem' || !parentFormItem) {
         break;
@@ -390,6 +393,26 @@ const _inputPadding = computed(() => {
     }
     return props.inputPadding;
 })
+let timerId = NaN;
+function debounce(func: Function, wait = 500, immediate = false) {
+	// 清除定时器
+	if (!isNaN(timerId)) clearTimeout(timerId);
+	// 立即执行，此类情况一般用不到
+
+	if (immediate) {
+		var callNow = !timerId;
+		timerId = setTimeout(() => {
+			timerId = NaN;
+		}, wait);
+
+		if (callNow) typeof func === "function" && func();
+	} else {
+		// 设置定时器，当最后一次操作后，timeout不会再被清除，所以在延时wait毫秒后执行func回调方法
+		timerId = setTimeout(() => {
+			typeof func === "function" && func();
+		}, wait);
+	}
+}
 const propsDetail = computed(() => {
     return {
 		focus:props.focus,
@@ -503,7 +526,7 @@ function blur() {
 function confirm() {
     emits("confirm", _value.value)
 }
-function inputHandler(e) {
+function inputHandler(e:CustomEvent) {
 
     _value.value = e.detail.value;
     emits("input", e.detail.value)
@@ -511,25 +534,12 @@ function inputHandler(e) {
 	
     return e.detail.value;
 }
-let timerId = NaN;
-function debounce(func:Function, wait = 500, immediate = false) {
-  // 清除定时器
-  if (!isNaN(timerId)) clearTimeout(timerId);
-  // 立即执行，此类情况一般用不到
-  if (immediate) {
-	var callNow = !timerId;
-	timerId = setTimeout(() => {
-	  timerId = NaN;
-	}, wait);
-	if (callNow) typeof func === "function" && func();
-  } else {
-	// 设置定时器，当最后一次操作后，timeout不会再被清除，所以在延时wait毫秒后执行func回调方法
-	timerId = setTimeout(() => {
-	  typeof func === "function" && func();
-	}, wait);
-  }
+function inputClick(e:Event,type){
+	e.stopPropagation()
+	
+	debounce(()=>emits('click', e),150,true)
 }
-watch(_value,()=>debounce(pushFormItem,350))
+watch(_value,()=>debounce(pushFormItem,150))
 
 //--------------以下是专门为form表单专用------------------
 const tmFormFun = inject("tmFormFun", computed(() => ""))
@@ -628,4 +638,10 @@ pushFormItem(false)
 </script>
 
 <style scoped>
-</style>>
+/* #ifndef APP-NVUE */
+input,textarea{
+    background-color: transparent;
+    background: transparent;
+}
+/* #endif */
+</style>

@@ -19,6 +19,7 @@
 			</tm-sheet>
 			<tm-button :round="5" :fontColor="props.activeFontColor" :followTheme="false" @click="cancel" label="取消" :font-size="28" :margin="[32, 8]" :color="_color"
 				block :shadow="0"></tm-button>
+				
 		</view>
 	</tm-drawer>
 </template>
@@ -107,12 +108,16 @@ const _list = computed<Array<listitem>>(() => {
 	})
 	return listdata
 })
-const win_bottom = uni.getWindowInfo()?.safeAreaInsets?.bottom??0
+let win_bottom = uni.getSystemInfoSync()?.safeAreaInsets?.bottom??0
+
+// #ifndef APP || MP-WEIXIN
+win_bottom = uni.getSystemInfoSync()?.safeArea?.bottom??0
+win_bottom = win_bottom>uni.getSystemInfoSync().windowHeight?0:win_bottom
+// #endif
 const cHeight = computed(() => {
 	let len = _list.value.length + 1
 	return len * 80 + 180 + win_bottom
 })
-
 const _color = computed(() => props.color)
 
 watchEffect(() => {

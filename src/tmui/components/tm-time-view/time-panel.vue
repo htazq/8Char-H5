@@ -9,8 +9,14 @@
 		    <picker-view-column
 		    :style="[{height:props.height+'rpx'}]">
 		        <view  v-for="(item,index) in tmArray" :key="index" class="flex"  style="justify-content: center;height:34px;align-items:center">
-		            <TmText :font-size="30" :dark="isDark" v-if="props.timeType!='month'" :label="item+props.suffix"></TmText>
-		            <TmText :font-size="30" :dark="isDark" v-if="props.timeType=='month'" :label="(item+1)+props.suffix"></TmText>
+		           <!-- #ifndef MP-ALIPAY -->
+				   <TmText :font-size="30" :dark="isDark" v-if="props.timeType!='month'" :label="item+props.suffix"></TmText>
+				   <TmText :font-size="30" :dark="isDark" v-if="props.timeType=='month'" :label="(item+1)+props.suffix"></TmText>
+				   <!-- #endif -->
+				   <!-- #ifdef MP-ALIPAY -->
+				   <TmText :font-size="30" :style="{lineHeight:props.height+'rpx'}" _class="text-align-center  pt-14" :dark="isDark" v-if="props.timeType!='month'" :label="item+props.suffix"></TmText>
+				   <TmText :font-size="30" :style="{lineHeight:props.height+'rpx'}" _class="text-align-center  pt-14" :dark="isDark" v-if="props.timeType=='month'" :label="(item+1)+props.suffix"></TmText>
+				   <!-- #endif -->
 		        </view>
 		    </picker-view-column>
 		</picker-view>

@@ -37,7 +37,7 @@ import {
 import { useTmpiniaStore } from '../../tool/lib/tmpinia';
 const store = useTmpiniaStore();
 const emits = defineEmits(["click"]);
-const {proxy} = getCurrentInstance()
+const proxy = getCurrentInstance()?.proxy??null;
 const props = defineProps({
 	...custom_props,
   //项目的高度。如果提供为0，就表示自动高度。
@@ -111,7 +111,7 @@ const uid:Ref<arrayid> = ref({
 	type:""
 })
 //父级方法。
-let parentFormItem = proxy.$parent
+let parentFormItem:any = proxy?.$parent
 while (parentFormItem) {
     if (parentFormItem?.keyName == 'tmGrid' || !parentFormItem) {
         break;

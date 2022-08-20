@@ -26,7 +26,6 @@
 			@click="onclick" 
 			@touchstart="startDrag" 
 			@mousedown="startDrag" 
-			@touchcancel="endDrag"
 			@touchend="endDrag" 
 			@mouseleave="endDrag" 
 			@mouseup="endDrag" 
@@ -107,6 +106,26 @@
 			default: false
 		}
 	});
+	let timerId = NaN;
+	function debounce(func: Function, wait = 500, immediate = false) {
+		// 清除定时器
+		if (!isNaN(timerId)) clearTimeout(timerId);
+		// 立即执行，此类情况一般用不到
+
+		if (immediate) {
+			var callNow = !timerId;
+			timerId = setTimeout(() => {
+				timerId = NaN;
+			}, wait);
+
+			if (callNow) typeof func === "function" && func();
+		} else {
+			// 设置定时器，当最后一次操作后，timeout不会再被清除，所以在延时wait毫秒后执行func回调方法
+			timerId = setTimeout(() => {
+				typeof func === "function" && func();
+			}, wait);
+		}
+	}
 	const attr = computed(() => {
 		return {
 			width: props.width,
@@ -148,10 +167,14 @@
 	const isRend = ref(false)
 	const _animation = ref(false)
 	const _isCloseAni = ref(true)
+	let isSwiperAni = false;//当前是否是在滑动当中的复位过程。
+	let isSwiperAni_x = 0;
+	let ChaJuli = 0;
 	let tid = 265988
-	watch(() => props.openStatus, () => oninit())
+	let Start_x = 0;
+	let maxLen = _cellwidth.value-maxWidth.value;
+	watchEffect(() => props.openStatus, () => oninit())
 	onMounted(() => {
-		oninit()
 		nextTick(()=>isRend.value=true)
 		setTimeout(()=>_animation.value=true,300)
 	})
@@ -160,68 +183,110 @@
 		if (props.openStatus) {
 			_mX.value = _cellwidth.value
 			uni.$tm.u.debounce(() => {
-				_x.value = _cellwidth.value-maxWidth.value
-				_old_x.value = _x.value
-				_mX.value = _x.value
+				_old_x.value = maxLen
+				_mX.value = maxLen
+				Start_x = maxLen
 			}, 40)
 		} else {
-			_x.value =  _cellwidth.value
+			_mX.value =  _cellwidth.value
+			Start_x = _cellwidth.value
 		}
 	}
-	const onChange = (e: Event) => {
-		_x.value = e.detail.x
+	const onChange = (e: Event|TouchEvent) => {
 		// #ifndef MP
-		_mX.value = _x.value
+			_mX.value = e.detail.x
+			if(_isDrag.value){
+				_old_x.value = _mX.value
+			}
+			_isDrag.value = false
+			
+			if(_mX.value<maxLen){
+				_disabled.value=true;
+			}
 		// #endif
-		if(_isDrag.value==true&&e.detail.source=='touch'&&_isCloseAni.value===true){
-			_old_x.value = _x.value
-		}
-		_isDrag.value = false;
-		let maxLen = _cellwidth.value-maxWidth.value;
-		if(_x.value<maxLen){
-			_disabled.value=true;
-		}
+
+		// #ifdef MP
+			_x.value = e.detail.x
+
+			if((_x.value <= maxLen || _x.value >= _cellwidth.value)&&e.detail.source){
+				isSwiperAni = false;
+			}
+			if(_isDrag.value){
+				_old_x.value = _x.value 
+			}
+			_isDrag.value = false
+			if(_x.value <maxLen){
+				_disabled.value=true;
+			}
+		// #endif
+
+		
+		
 	}
-	const startDrag = () => {
+	const startDrag = (e: Event|TouchEvent) => {
 		_isDrag.value = true;
+
 	}
 	const endDrag = () => {
-		let x_c =  Math.abs(_old_x.value) - Math.abs(_x.value);
-		
-		_old_x.value = _x.value;
-		
-		if(x_c!==0){
-			// #ifndef MP
-			_mX.value =  _cellwidth.value-1
-			// #endif
-		}
-		uni.$tm.u.throttle(() => {
-			if (x_c > 0) {
-				//向左滑动。
-				if(x_c>=20){
-					//恢复到原位。
-					_x.value = _cellwidth.value-maxWidth.value
-					_old_x.value = _x.value
-					_mX.value = _x.value
-					emits("update:open-status", true)
-				}else{
-					_x.value = _cellwidth.value
-					_old_x.value = _x.value
-					_mX.value = _x.value
-					emits("update:open-status", false)
-				}
-			} else {
-				//向右滑动。
-				_x.value = _cellwidth.value
-				_old_x.value = _x.value
-				_mX.value = _x.value
-				emits("update:open-status", false)
-			}
 			_isCloseAni.value = false;
 			if(!attr.value.disabled){
 				_disabled.value=false;
 			}
-		},50,false)
+			if(attr.value.disabled) return;
+			
+			// #ifndef MP
+			_mX.value -=1
+			ChaJuli =  Math.abs(_old_x.value) - Math.abs(_mX.value);
+			debounce(()=>{
+				if (ChaJuli > 0) {
+					//向左滑动。
+					if(ChaJuli>=10){
+						//恢复到原位。
+						// _x.value = _cellwidth.value-maxWidth.value
+						_old_x.value = _cellwidth.value-maxWidth.value
+						_mX.value = _old_x.value
+						emits("update:open-status", true)
+					}else{
+						_x.value = _cellwidth.value
+						_mX.value = _x.value
+						emits("update:open-status", false)
+					}
+				} else {
+					//向右滑动。
+					// _x.value = _cellwidth.value
+					_old_x.value = _cellwidth.value
+					_mX.value =  _cellwidth.value
+					emits("update:open-status", false)
+				}
+				
+			},10,false)
+			// #endif
+
+			// #ifdef MP
+		
+			ChaJuli =  Start_x - _x.value;
+			if (ChaJuli > 0) {
+				//向左滑动。
+				if(ChaJuli>=10){
+					//恢复到原位。
+					_old_x.value = maxLen
+					_mX.value = _old_x.value
+					
+					emits("update:open-status", true)
+				}else{
+					_mX.value = _cellwidth.value
+					emits("update:open-status", false)
+				}
+			} else {
+				//向右滑动。
+				// _x.value = _cellwidth.value
+				_old_x.value = _cellwidth.value
+				_mX.value =  _cellwidth.value
+				emits("update:open-status", false)
+			}
+			Start_x = _mX.value;
+			// #endif
+		
 	}
 	const onclick = (e: Event) => {
 		emits("click", e)

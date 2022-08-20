@@ -34,7 +34,7 @@
 		WeexBridge,
 	} from '../../tool/gcanvas/index.js';
 	// #endif
-	const { proxy } = <ComponentInternalInstance>getCurrentInstance();
+	const proxy = getCurrentInstance()?.proxy??null;
 
 	const props = defineProps({
 		option:{
@@ -78,6 +78,7 @@
 		let bcode = JsBarcode(ctx, opts.text,opts);
 		let BarcodeObj:BarcodeObjType = bcode._encodings[0][0];
 		let is2d = canvas2d?true:false;
+		
 		drawBarCode(ctx,BarcodeObj.options,BarcodeObj,is2d,uni.upx2px(_width.value))
 	}
 	watch(()=>props.option,()=>{
@@ -111,7 +112,6 @@
 			}, 50)
 			// #endif
 			
-			
 		})
 	}
 	//appvue,h5,和其它平台。
@@ -122,12 +122,23 @@
 	function MpWeix_init():Promise<{ctx2d:CanvasRenderingContext2D,canvas:HTMLCanvasElement}> {
 		return new Promise((resolve,rej)=>{
 			const query = uni.createSelectorQuery().in(vnodeCtx)
+			
+			// #ifdef MP-ALIPAY
+			query.select('#canvasId').node().exec((res2) => {
+			    const canvas = res2[0].node;
+				let ctxvb:UniApp.CanvasContext = canvas.getContext('2d');
+				resolve({ctx2d:ctxvb,canvas:canvas})
+			})
+			// #endif
+			// #ifdef MP-WEIXIN || MP-QQ
 			query.select('#canvasId')
 				.fields({
 					node: true,
-					size: true
+					size: true,
+					context:true
 				})
 				.exec((res) => {
+					// #ifndef MP-QQ
 					const canvas = res[0].node
 					const ctxvb = canvas.getContext('2d')
 					const dpr = uni.getSystemInfoSync().pixelRatio
@@ -135,7 +146,14 @@
 					canvas.height = res[0].height * dpr
 					ctxvb.scale(dpr, dpr)
 					resolve({ctx2d:ctxvb,canvas:canvas})
-				})
+					// #endif
+					// #ifdef MP-QQ
+					resolve({ctx2d:res[0].context,canvas:null})
+					// #endif
+			})
+			// #endif
+			
+			
 		})
 	}
 	function drawNvue_init() {

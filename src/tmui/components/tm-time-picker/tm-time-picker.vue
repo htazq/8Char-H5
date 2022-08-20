@@ -1,8 +1,11 @@
 <template>
-    <tm-drawer :round="props.round" ref="drawer" :height="dHeight" @update:show="_show = $event" :show="_show" @close="close" @open="open"
+    <tm-drawer  :round="props.round" ref="drawer" :height="dHeight" 
+	@update:show="_show = $event" :show="_show" @close="close" 
+	:ok-color="props.color"
+	@open="open"
         title="请选择时间" :closable="true" @ok="confirm">
          <tm-time-view
-            :height="dHeight-300"
+            :height="dHeight-230"
             @update:model-value="_value = $event" 
             :model-value="_value"
             @update:model-str="_strvalue = $event" 
@@ -40,8 +43,8 @@ import tmDrawer from "../tm-drawer/tm-drawer.vue";
 import TmSheet from "../tm-sheet/tm-sheet.vue";
 import tmText from "../tm-text/tm-text.vue";
 import tmButton from "../tm-button/tm-button.vue";
-const { proxy } = getCurrentInstance();
-
+const proxy = getCurrentInstance()?.proxy??null;
+const drawer = ref<InstanceType<typeof tmDrawer> | null>(null)
 const emits = defineEmits(["update:modelValue", "update:modelStr", "update:show", "confirm","change", "cancel", "close", "open"])
 
 const props = defineProps({
@@ -148,7 +151,16 @@ const _show = ref(props.show)
 const isConfirm = ref(false)//是否点了确认按钮。
 const _value = ref(props.defaultValue)
 const _strvalue = ref("")
-const win_bottom = uni.getWindowInfo()?.safeAreaInsets?.bottom??0
+
+
+// #ifdef APP || MP-WEIXIN
+let win_bottom = uni.getSystemInfoSync()?.safeAreaInsets?.bottom??0
+// #endif
+// #ifndef APP || MP-WEIXIN
+let win_bottom = uni.getSystemInfoSync()?.safeArea?.bottom??0
+win_bottom = win_bottom>uni.getSystemInfoSync().windowHeight?0:win_bottom
+// #endif
+
 function close() {
     if (!isConfirm.value) {
         emits("cancel")
@@ -180,12 +192,12 @@ function change(e:string | number) {
 function confirm() {
     emits("confirm", _value.value)
     emits("update:modelValue", _value.value)
-		emits("update:modelStr", _strvalue.value)
+	emits("update:modelStr", _strvalue.value)
     isConfirm.value = true;
-    proxy.$refs.drawer.close();
+    drawer.value?.close();
 }
 
 const dHeight = computed(() => {
-    return props.height+win_bottom+100
+    return props.height+win_bottom+80
 })
 </script>

@@ -33,7 +33,7 @@
 		WeexBridge,
 	} from '../../tool/gcanvas/index.js';
 	// #endif
-	const { proxy } = getCurrentInstance();
+	const proxy = getCurrentInstance()?.proxy??null;
 	const props = defineProps({
 		option:{
 			type:Object as PropType<qrOpts>,
@@ -60,6 +60,7 @@
 		nextTick(async function () {
 			await init();
 			qr(ctx,{...opts.value,size:uni.upx2px(_width.value)},canvas2d)
+			
 		})
 	})
 	
@@ -68,6 +69,7 @@
 			init().then(()=>qr(ctx,{...opts.value,size:uni.upx2px(_width.value)},canvas2d))
 		}else{
 			qr(ctx,{...opts.value,size:uni.upx2px(_width.value)},canvas2d)
+			
 		}
 	},{deep:true})
 	function init(){
@@ -80,6 +82,7 @@
 				const {ctx2d,canvas} = await MpWeix_init();
 				ctx = ctx2d;
 				canvas2d = canvas
+
 				// #endif
 				// #ifndef MP-WEIXIN || MP-ALIPAY || MP-QQ || APP-NVUE
 				ctx = await appvueH5Other();
@@ -96,21 +99,40 @@
 	function MpWeix_init() {
 		return new Promise((resolve,rej)=>{
 			const query = uni.createSelectorQuery().in(vnodeCtx)
+			// #ifdef MP-ALIPAY
+			query.select('#canvasId').node().exec((res2) => {
+			    const canvas = res2[0].node;
+				let ctxvb:UniApp.CanvasContext = canvas.getContext('2d');
+				
+				resolve({ctx2d:ctxvb,canvas:canvas})
+			})
+			// #endif
+			// #ifdef MP-WEIXIN || MP-QQ
 			query.select('#canvasId')
 				.fields({
 					node: true,
-					size: true
+					size: true,
+					context:true
 				})
 				.exec((res) => {
-					const canvas = res[0].node
-					const ctxvb = canvas.getContext('2d')
+					
+					// #ifdef MP-WEIXIN
+					let canvas:any = res[0]?.node
+					let ctxvb:UniApp.CanvasContext = canvas.getContext('2d');
 					const dpr = uni.getSystemInfoSync().pixelRatio
 					canvas.width = res[0].width * dpr
 					canvas.height = res[0].height * dpr
 					ctxvb.scale(dpr, dpr)
-					
 					resolve({ctx2d:ctxvb,canvas:canvas})
-				})
+					// #endif
+					
+					
+					
+					// #ifdef MP-QQ
+					resolve({ctx2d:res[0].context,canvas:null})
+					// #endif
+			})
+			// #endif
 		})
 	}
 	function drawNvue_init() {

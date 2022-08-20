@@ -7,7 +7,7 @@
 <template>
 	<view class="flex flex-col relative">
 		
-		<tm-sheet v-if="!props.hidnTool" :shadow="0" :round="0" :margin="[0,0]" :padding="[0,24]" _class="flex flex-row flex-row-center-center" >
+		<tm-sheet v-if="!props.hideTool" :shadow="0" :round="0" :margin="[0,0]" :padding="[0,24]" _class="flex flex-row flex-row-center-center" >
 			<view @click.stop="prevYear" class="px-32">
 				<tm-icon :userInteractionEnabled="false" :font-size="24" name="tmicon-angle-double-left"></tm-icon>
 			</view>
@@ -53,7 +53,7 @@
             </view>
         </view>
 		
-		<tm-button  :followTheme="props.followTheme" v-if="!props.hidnButton" :linear="props.linear" :linear-deep="props.linearDeep" :color="props.color" @click="confirm" block  label="确认" :margin="[0,16]"></tm-button>
+		<tm-button  :followTheme="props.followTheme" v-if="!props.hideButton" :linear="props.linear" :linear-deep="props.linearDeep" :color="props.color" @click="confirm" block  label="确认" :margin="[0,16]"></tm-button>
 
 	</view>
 </template>
@@ -142,12 +142,12 @@ const props = defineProps({
         default:999
     },
     //隐藏头部操作栏
-    hidnTool:{
+    hideTool:{
         type:Boolean,
         default:false
     },
     //隐藏底部确认按钮
-    hidnButton:{
+    hideButton:{
         type:Boolean,
         default:false
     }

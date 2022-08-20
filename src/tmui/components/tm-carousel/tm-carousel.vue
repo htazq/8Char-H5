@@ -9,19 +9,20 @@
 				:autoplay="_autoplay"
 				:displayMultipleItems="props.displayMultipleItems" :skipHiddenItemLayout="props.skipHiddenItemLayout"
 				:disableTouch="props.disableTouch" :touchable="props.touchable" @change="sliderChange"
+				:class="`round-${props.round}`"
 				:current="_current" :style="[
 					{ width: `${props.width}rpx`, height: `${props.height}rpx` }
 				]">
-				<swiper-item @click="emits('click',index)" v-for="(item, index) in _list" :key="index" :style="[
+				<swiper-item :class="`round-${props.round}`" @click="emits('click',index)" v-for="(item, index) in _list" :key="index" :style="[
 					{ width: `${props.width}rpx`, height: `${props.height}rpx` }
 				]">
-					<tm-image :userInteractionEnabled="false" :showLoad="props.showLoad" v-if="item.type == listItemType.img" :src="item.url" :width="props.width"
+					<tm-image :round="props.round" :userInteractionEnabled="false" :showLoad="props.showLoad" v-if="item.type == listItemType.img" :src="item.url" :width="props.width"
 						:height="props.height"></tm-image>
-					<tm-image :userInteractionEnabled="false" :showLoad="props.showLoad" v-if="item.type == listItemType.video && item.img && _current != index" :src="item.img"
+					<tm-image :round="props.round" :userInteractionEnabled="false" :showLoad="props.showLoad" v-if="item.type == listItemType.video && item.img && _currentActive != index" :src="item.img"
 						:width="props.width" :height="props.height"></tm-image>
-					<video :userInteractionEnabled="false" id="video" v-if="item.type == listItemType.video && _current === index" :src="item.url" :style="[
+					<video :userInteractionEnabled="false" id="video" v-if="item.type == listItemType.video && _currentActive === index" :src="item.url" :style="[
 						{ width: `${props.width}rpx`, height: `${props.height}rpx` }
-					]" :autoplay="_current === index">
+					]" :autoplay="_currentActive === index" :class="`round-${props.round}`">
 					</video>
 				</swiper-item>
 			</swiper>
@@ -47,8 +48,8 @@
 	_dotPosition == 'left' ? { left: '0px', top: '0px', width: `${60}rpx`, height: `${props.height}rpx` } : '',
 	_dotPosition == 'right' ? { right: '0px', top: '0px', width: `${60}rpx`, height: `${props.height}rpx` } : '',
 ]">
-				<tm-sheet :margin="[10, 10]" :follow-theme="_current == index?props.followTheme:false"  :padding="[0, 0]" :round="10" @click="dotClick(index)"
-					:color="_current == index ? props.color: 'white'" v-for="(item, index) in _list" :key="index" :width="18"
+				<tm-sheet :margin="[10, 10]" :follow-theme="_currentActive == index?props.followTheme:false"  :padding="[0, 0]" :round="10" @click="dotClick(index)"
+					:color="_currentActive == index ? props.color: 'white'" v-for="(item, index) in _list" :key="index" :width="18"
 					:height="18"></tm-sheet>
 			</view>
 			<!-- rect -->
@@ -76,7 +77,7 @@
 ]">
 				<tm-sheet :round="index == 0 || index == _list.length - 1 ? 10 : 0"
 					:margin="_dotPosition == 'left' || _dotPosition == 'right' ? [10, 0] : [0, 10]" :padding="[0, 0]"
-					@click="dotClick(index)" :follow-theme="_current == index?props.followTheme:false" :color="_current == index ? props.color: 'white'" v-for="(item, index) in _list"
+					@click="dotClick(index)" :follow-theme="_currentActive == index?props.followTheme:false" :color="_currentActive == index ? props.color: 'white'" v-for="(item, index) in _list"
 					:key="index" :width="_dotPosition == 'left' || _dotPosition == 'right' ? 6 : 36"
 					:height="_dotPosition == 'left' || _dotPosition == 'right' ? 36 : 6"></tm-sheet>
 			</view>
@@ -109,7 +110,7 @@
 					_dotPosition == 'left' || _dotPosition == 'right' ? 'px-5 py-24 ' : '',
 					_dotPosition == 'bottom' || _dotPosition == 'top' ? 'px-24 py-5 ' : '',
 				]" style="background-color: rgba(0, 0, 0, 0.4);">
-					<text style="font-size: 22rpx;color: white;">{{ _current + 1 }}/{{ _list.length }}</text>
+					<text style="font-size: 22rpx;color: white;">{{ _currentActive + 1 }}/{{ _list.length }}</text>
 				</view>
 			</view>
 		</view>
@@ -132,7 +133,7 @@ import {
 import tmImage from "../tm-image/tm-image.vue"
 import tmSheet from "../tm-sheet/tm-sheet.vue"
 import { listItem, listItemType,listItemTypeStr } from "./interface"
-const { proxy } = <any>getCurrentInstance()
+const proxy = getCurrentInstance()?.proxy??null;
 const emits = defineEmits(["change","click"])
 const props = defineProps({
 	followTheme:{
@@ -263,6 +264,7 @@ const _list = computed(() => {
 })
 
 const _current = ref(props.defaultValue || 0);
+const _currentActive = ref(props.defaultValue || 0)
 const _model = computed(() => props.model)
 const _dotPosition = computed(() => props.dotPosition)
 const _align = computed(() => props.align)
@@ -270,19 +272,21 @@ const _autoplay = computed(()=>props.autoplay)
 function sliderChange(e:any) {
 	if(!_autoplay.value){
 		_current.value = e?.detail?.current;
+		
 	}
+	_currentActive.value = e?.detail?.current;
 	nextTick(() => {
-		emits("change", _current.value)
-		let vobj = uni.createVideoContext('video', proxy)
-		vobj.play()
+		emits("change", _currentActive.value)
 	})
 }
 function dotClick(index: number) {
+	_currentActive.value = index;
 	if(!_autoplay.value){
 		_current.value = index;
 	}
 	
 }
+
 </script>
 
 <style>

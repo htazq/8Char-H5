@@ -17,12 +17,12 @@
 	:_class="['flex relative flex-col',props.disabled?'opacity-4':'']" 
 	:text="_value?false:props.text"
 	:padding="[4,4]" :margin="props.margin">
-		<view :userInteractionEnabled="false" class="flex flex-row flex-betwwen" 
+		<view :userInteractionEnabled="false"  class="flex flex-row flex-between " 
 		:style="[{width:viewSize.coenteWidth+'rpx',height:viewSize.innerHeight+'rpx'}]">
 			<view class="flex-1 flex-row flex-row-center-center"><tm-text :font-size="viewSize.fontSize" :label="props.label[0]"></tm-text></view>
 			<view class="flex-1 flex-row flex-row-center-center"><tm-text :font-size="viewSize.fontSize" :label="props.label[1]"></tm-text></view>
 		</view>
-		<view :userInteractionEnabled="false" :class="['absolute base',_value?'on':'off',]" 
+		<view :userInteractionEnabled="false" :class="['absolute base nvue',_value?'on':'off',]" 
 		ref="switch"
 		:style="{
 			width:viewSize.innerWidth+'rpx',
@@ -68,7 +68,7 @@ const animation = uni.requireNativePlugin('animation')
  * update:modelValue v-model双向绑定数据。
  */
 const emits = defineEmits(['update:modelValue','change','click'])
-const {proxy} = getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 const props = defineProps({
 	...custom_props,
 	//是否跟随全局主题的变换而变换
@@ -225,9 +225,9 @@ onMounted(()=>{
 
 function spinNvueAni(reveser=false) {
 	// #ifdef APP-NVUE
-	if (!proxy.$refs['switch']) return;
+	if (!proxy?.$refs['switch']) return;
 	
-	var testEl = proxy.$refs.switch;
+	var testEl = proxy?.$refs.switch;
 	animation.transition(testEl, {
 		styles: {
 			transform: reveser?`translateX(${viewSize.value.conentWidthPx}px)`:'translateX(0%)',
@@ -256,7 +256,7 @@ const rulesObj = inject("tmFormItemRules",computed<Array<rulesItem>>(()=>{
     ]
 }))
 //父级方法。
-let parentFormItem = proxy.$parent
+let parentFormItem:any = proxy?.$parent
 while (parentFormItem) {
     if (parentFormItem?.tmFormComnameFormItem == 'tmFormComnameFormItem' || !parentFormItem) {
         break;
@@ -353,7 +353,7 @@ watch(tmFormFun,()=>{
 /* #ifndef APP-NVUE */
 	.base{
 		transform:translateX(0%);
-		transition: 0.2s linear;
+		transition: 0.2s ease;
 		left: 0;
 	}
 	.on{

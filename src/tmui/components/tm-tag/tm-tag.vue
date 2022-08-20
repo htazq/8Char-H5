@@ -3,6 +3,7 @@
 		<tm-translate @end="aniEnd" ref="anitag" name="zoom" reverse :autoPlay="false">
 			
 			<tm-sheet
+			hover-class="opacity-6"
 			@click="onclick"
 			:transprent="props.transprent"
 			:color="props.color"
@@ -71,7 +72,8 @@
 		onMounted,
 		onUnmounted,
 		nextTick,
-		watch
+		watch,
+PropType
 	} from 'vue';
 	import {
 		cssstyle,
@@ -90,19 +92,19 @@
 	const props = defineProps({
 		...custom_props,
 		followTheme: {
-			type: [Boolean,String],
+			type: [Boolean],
 			default: true
 		},
 		transprent:{
-			type: [Boolean,String],
+			type: [Boolean],
 			default: false
 		},
 		border: {
-			type: [Number, String],
+			type: [Number],
 			default: 0
 		},
 		round: {
-			type: [Number, String],
+			type: [Number],
 			default: 2
 		},
 		shadow: {
@@ -110,11 +112,11 @@
 			default: 1
 		},
 		margin: {
-			type: Array,
+			type: Array as PropType<Array<number>>,
 			default: () => [10, 10]
 		},
 		padding: {
-			type: Array,
+			type: Array as PropType<Array<number>>,
 			default: () => [0, 0]
 		},
 		
@@ -139,12 +141,12 @@
 			default:'m' //xs|s|m|n|g|lg
 		},
 		fontSize:{
-			type:[Number,String],
+			type:[Number],
 			default:0
 		},
 		//是否允许关闭标签。
 		closable:{
-			type:[Boolean,String],
+			type:[Boolean],
 			default:false
 		},
 		//标签上显示图标。
@@ -162,7 +164,8 @@
 		}
 	});
 	const emits = defineEmits(['click','close','change','update:checked']);
-	const {proxy} = getCurrentInstance();
+	
+	const anitag = ref<InstanceType<typeof tmTranslate> | null>(null)
 	//自定义样式：
 	const customCSSStyle = computed(()=>computedStyle(props));
 	//自定类
@@ -251,8 +254,8 @@
 		if(loading.value) return;
 		e.stopPropagation();
 		emits('close');
-		if(proxy.$refs['anitag']){
-			proxy.$refs.anitag.play();
+		if(anitag.value){
+			anitag.value.play();
 		}else{
 			show.value = false
 		}

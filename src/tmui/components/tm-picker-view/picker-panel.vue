@@ -10,9 +10,15 @@
 		    <picker-view-column
 		    :style="[{height:props.height+'rpx'}]">
 		        <view :class="[item['disabled']?'opacity-5':'']"  v-for="(item,index) in _data" :key="index" class="flex"  
-				style="justify-content: center;height:34px;align-items:center">
-		            <TmText v-if="typeof item == 'string'" _class="text-align-center" :font-size="item.length>7?24:30"  :dark="isDark" :label="item"></TmText>
-		            <TmText v-if="typeof item == 'object'" _class="text-align-center" :font-size="item[props.dataKey].length>7?24:30" :dark="isDark" :label="(item[props.dataKey]||'')"></TmText>
+				style="justify-content: center;height:34px;align-items:center;">
+		           <!-- #ifndef MP-ALIPAY -->
+				   <TmText v-if="typeof item == 'string'" _class="text-align-center" :font-size="item.length>7?24:30"  :dark="isDark" :label="item"></TmText>
+				   <TmText v-if="typeof item == 'object'" _class="text-align-center" :font-size="item[props.dataKey].length>7?24:30" :dark="isDark" :label="(item[props.dataKey]||'')"></TmText>
+				   <!-- #endif -->
+				   <!-- #ifdef MP-ALIPAY -->
+				   <TmText  v-if="typeof item == 'string'" :style="{lineHeight:props.height+'rpx'}" _class="text-align-center  pt-14" :font-size="item.length>7?24:30"  :dark="isDark" :label="item"></TmText>
+				   <TmText v-if="typeof item == 'object'" :style="{lineHeight:props.height+'rpx'}" _class="text-align-center  pt-14" :font-size="item[props.dataKey].length>7?24:30" :dark="isDark" :label="(item[props.dataKey]||'')"></TmText>
+				   <!-- #endif -->
 		        </view>
 		    </picker-view-column>
 		</picker-view>
@@ -46,7 +52,7 @@ import { columnsItem } from "./interface"
 const dom = uni.requireNativePlugin('dom')
 // #endif
 const emits = defineEmits(["change","end","start"])
-const { proxy } = getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 const store = useTmpiniaStore();
 const props = defineProps({
 	followTheme: {

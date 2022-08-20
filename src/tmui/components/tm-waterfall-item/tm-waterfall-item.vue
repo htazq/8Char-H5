@@ -1,6 +1,6 @@
 <template>
     <view ref="itemWall" class="absolute itemWall " :style="[
-        !isPush ? { transform: 'translateX(-100000px)' } : '',
+        !isPush ? { transform: 'translateX(-1000px)' } : '',
         isPush ? { transform: `translateX(${_nodeInfo.left}px) translateY(${_nodeInfo.top}px)` } : ''
     ]">
         <tm-sheet :margin="[0, 0]" :padding="[0, 0]" :round="props.round" :width="_width" unit="px" :color="props.color"
@@ -28,7 +28,7 @@ import { itemParenSG } from "../tm-waterfall/interface"
 // #ifdef APP-PLUS-NVUE
 const dom = uni.requireNativePlugin('dom')
 // #endif
-const { proxy } = getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 const emits = defineEmits(["img-click"])
 const props = defineProps({
     //封面图片。

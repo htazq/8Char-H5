@@ -46,7 +46,7 @@ const store = useTmpiniaStore();
  * beforeClick点击切换之前执行，如果返回false或者Promise<false>时，将阻止链接的切换。如果没有提供url链接地地址将只作为切换使用。
  */
 const emits = defineEmits(["click", "beforeClick"])
-const { proxy } = <ComponentInternalInstance>getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 const props = defineProps({
 	...custom_props,
 	followTheme: {
@@ -237,9 +237,15 @@ watch(tmTabbarItemActive, () => {
 	if (!tmTabbarItemAutoSelect.value) {
 		// 非自动选中，通过父组件的active来选中当前。
 		if (tmTabbarItemList.value[tmTabbarItemActive.value] == uid) {
-			_active.value = true
+			nextTick(()=>{
+				_active.value = true
+			})
+			
 		} else {
-			_active.value = false
+			nextTick(()=>{
+				_active.value = false
+			})
+			
 		}
 	}
 })
@@ -259,13 +265,13 @@ async function itemClick() {
 	}
 
 	emits("click");
-	if (tmTabbarItemAutoSelect.value) {
-		if (parent) {
-			parent.setNowurl(props.url, uid)
-		}
-	}
 	nextTick(() => {
-		setActive()
+		if (tmTabbarItemAutoSelect.value) {
+			if (parent) {
+				parent.setNowurl(props.url, uid)
+			}
+			setActive()
+		}
 		if (props.url == "") return
 		uni.$tm.u.routerTo(props.url, props.openType)
 	})

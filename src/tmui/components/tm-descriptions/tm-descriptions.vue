@@ -32,9 +32,8 @@ import { custom_props, computedTheme, computedClass, computedStyle, computedDark
 // #ifdef APP-PLUS-NVUE
 const dom = uni.requireNativePlugin('dom')
 // #endif
-const {
-	proxy
-} = getCurrentInstance();
+const tmDescriptions = ref<InstanceType<typeof tmSheet> | null>(null)
+const proxy = getCurrentInstance()?.proxy??null;
 const props = defineProps({
 	...custom_props,
 	shadow: {
@@ -109,7 +108,7 @@ function nvueGetRect() {
 	}
 	try {
 		nextTick(function () {
-			dom.getComponentRect(proxy.$refs.tmDescriptions, function (res) {
+			dom?.getComponentRect(tmDescriptions.value, function (res:any) {
 				if (!res?.size) return;
 				_cellWidth.value = (res.size.width / Number(props.column) - uni.upx2px(20)) + 'px';
 				if (res.size.width == 0) {

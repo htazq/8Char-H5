@@ -1,77 +1,46 @@
 <template>
-	<tm-overlay
-		:duration="25"
-		@open="OverLayOpen"
-		:zIndex="props.zIndex"
-		:transprent="!props.mask"
-		v-if="_show"
-		@click="clickClose"
-		:align="align_rp"
-		:overlayClick="false"
-		v-model:show="_show"
-	>
-		<tm-translate
-			@end="animationClose"
-			:reverse="reverse_rp"
-			:width="anwidth"
-			:height="anheight"
-			ref="drawerANI"
-			:auto-play="false"
-			:name="aniname"
-			:duration="props.duration"
-		>
-			<view
-				@click.stop="$event.stopPropagation()"
-				:style="[
-					{ width: anwidth, height: anheight },
-					!props.transprent ? tmcomputed.borderCss : '',
-					!props.transprent ? tmcomputed.backgroundColorCss : '',
-					!props.transprent ? tmcomputed.shadowColor : '',
-					customCSSStyle
-				]"
-				:class="[round_rp, 'flex flex-col overflow ', customClass]"
-			>
-				<view
-					v-if="!props.closeable && !props.hideHeader"
-					class="flex flex-row flex-row-center-center flex-between  px-24 "
-					style="height:44px"
-				>
-					<view class="flex-4 flex-shrink"><tm-text v-if="!props.hideCancel" @click="cancel" :label="props.cancelText"></tm-text></view>
+	<tm-overlay :duration="25" @open="OverLayOpen" :zIndex="props.zIndex" :transprent="!props.mask" 
+	v-if="_show" @click="clickClose" :align="align_rp"
+		:overlayClick="false" v-model:show="_show">
+		<tm-translate @end="animationClose" :reverse="reverse_rp" :width='anwidth' :height="anheight" ref="drawerANI"
+			:auto-play="false" :name="aniname" :duration="props.duration">
+			<view @click.stop="$event.stopPropagation()" :style="[
+				{ width: anwidth, height: anheight },
+				!props.transprent ? tmcomputed.borderCss : '',
+				!props.transprent ? tmcomputed.backgroundColorCss : '',
+				!props.transprent ? tmcomputed.shadowColor : '',
+				customCSSStyle,
+			]" :class="[round_rp, 'flex flex-col overflow ', customClass]">
+				<view v-if="!props.closeable && !props.hideHeader"
+					class="flex flex-row flex-row-center-center flex-between  px-24 " style="height:44px">
+					<view class="flex-4 flex-shrink">
+						<tm-text v-if="!props.hideCancel" @click="cancel" :label="props.cancelText"></tm-text>
+					</view>
 					<view class="flex-8 px-32 flex-center">
 						<slot name="title"><tm-text _class="text-overflow-1 opacity-7" :label="props.title"></tm-text></slot>
 					</view>
 					<view class="flex-4 flex-shrink flex-row flex-row-center-end">
-						<tm-text :color="okColor" @click="ok" v-if="!ok_loading" :dark="props.dark" :label="props.okText"></tm-text>
-						<tm-icon
-							:color="okColor"
-							v-if="ok_loading"
-							:spin="ok_loading"
-							:dark="isDark"
-							:_class="isDark !== true ? 'opacity-4' : ''"
-							:fontSize="34"
-							:name="ok_loading ? 'tmicon-jiazai_dan' : 'tmicon-times-circle-fill'"
-						></tm-icon>
+						<tm-text :color="okColor" @click="ok" v-if="!ok_loading" :dark="props.dark"
+							:label="props.okText"></tm-text>
+						<tm-icon :color="okColor" v-if="ok_loading" :spin="ok_loading" :dark="isDark"
+							:_class="isDark !== true ? 'opacity-4' : ''" :fontSize="34"
+							:name="ok_loading ? 'tmicon-jiazai_dan' : 'tmicon-times-circle-fill'"></tm-icon>
 					</view>
 				</view>
-				<view
-					v-if="props.closeable && !props.hideHeader"
-					class="flex flex-row flex-row-center-center flex-between  px-24 "
-					style="height:44px"
-				>
+				<view v-if="props.closeable && !props.hideHeader"
+					class="flex flex-row flex-row-center-center flex-between  px-24 " style="height:44px">
+
 					<view class="flex-9 pr-32 ">
 						<slot name="title"><tm-text _class="text-overflow-1 opacity-7" :dark="props.dark" :label="props.title"></tm-text></slot>
 					</view>
 					<view class="flex-3 flex-shrink flex-row flex-row-center-end">
-						<tm-icon
-							@click="cancel"
-							:dark="props.dark"
-							:_class="isDark !== true ? 'opacity-3' : ''"
-							:fontSize="36"
-							name="tmicon-times-circle-fill"
-						></tm-icon>
+						<tm-icon @click="cancel" :dark="props.dark" :_class="isDark !== true ? 'opacity-3' : ''"
+							:fontSize="36" name="tmicon-times-circle-fill"></tm-icon>
 					</view>
 				</view>
-				<scroll-view scroll-y :style="[{ height: contentHeight }]" class="overflow"><slot name="default"></slot></scroll-view>
+				<scroll-view scroll-y :style="[{ height: contentHeight }]" class="overflow">
+					<slot name="default"></slot>
+				</scroll-view>
 			</view>
 		</tm-translate>
 	</tm-overlay>
@@ -123,7 +92,7 @@ const props = defineProps({
 	//弹出的动画时间单位ms.
 	duration: {
 		type: Number,
-		default: 300
+		default: 250
 	},
 	//是否允许点击遮罩关闭
 	overlayClick: {
@@ -184,7 +153,7 @@ const props = defineProps({
 	}
 });
 const emits = defineEmits(['click', 'open', 'close', 'update:show', 'ok', 'cancel']);
-const { proxy } = getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 // 设置响应式全局组件库配置表。
 const tmcfg = computed<tmVuetify>(() => store.tmStore);
 //自定义样式：
@@ -204,6 +173,10 @@ const timeid = ref(0);
 let timerId = NaN;
 let timerIdth = NaN
 let timerIdth_flas = false
+
+const overflowStatus = ref('close')
+const drawerStauts = ref('close')
+
 let _show = ref(props.show);
 function debounce(func: Function, wait = 500, immediate = false) {
 	// 清除定时器
@@ -249,15 +222,46 @@ function throttle(func: Function, wait = 500, immediate = true) {
 
 	}
 };
-let { windowWidth, windowHeight, windowTop, safeArea, statusBarHeight, titleBarHeight } = uni.getSystemInfoSync();
-syswidth.value = windowWidth;
-sysheight.value = windowHeight;
-// #ifdef APP || MP
-sysheight.value = safeArea.height;
-// #endif
-// #ifdef H5
-sysheight.value = windowHeight;
-// #endif
+let sysinfo = uni.getSystemInfoSync();
+syswidth.value = sysinfo.windowWidth;
+sysheight.value = sysinfo.windowHeight;
+uni.hideKeyboard();
+let nowPage = getCurrentPages().pop()
+let isCustomHeader = false;
+for(let i=0;i<uni.$tm.pages.length;i++){
+	if(nowPage?.route==uni.$tm.pages[i].path&&uni.$tm.pages[i].custom=='custom'){
+		isCustomHeader = true;
+		break;
+	}
+}
+	// #ifdef H5
+	if (isCustomHeader) {
+		sysheight.value  = sysinfo.windowHeight + sysinfo.windowTop
+	}else{
+		sysheight.value  = sysinfo.windowHeight + sysinfo.windowTop-44
+	}
+	// #endif
+	
+	// #ifdef APP-NVUE 
+	if(!isCustomHeader){
+		if(sysinfo.osName=="android"){
+			sysheight.value = (sysinfo.safeArea?.height??sysinfo.windowHeight) - 44 - (sysinfo.safeAreaInsets?.bottom??0)
+		}else{
+			sysheight.value = (sysinfo.safeArea?.height??sysinfo.windowHeight) - 44
+		}
+	}else{
+		sysheight.value = (sysinfo.safeArea?.height??sysinfo.windowHeight) + (sysinfo?.statusBarHeight??0) + (sysinfo.safeAreaInsets?.bottom??0)
+	}
+	// #endif
+	// #ifdef APP-VUE 
+	if(!isCustomHeader){
+		sysheight.value = (sysinfo.safeArea?.height??sysinfo.windowHeight) - 44
+	}else{
+		sysheight.value = (sysinfo.safeArea?.height??sysinfo.windowHeight) + (sysinfo?.statusBarHeight??0) + (sysinfo.safeAreaInsets?.bottom??0)
+	}
+	// #endif
+
+
 timeid.value = uni.$tm.u.getUid(4)
 if (_show.value) {
 	reverse.value = false;
@@ -267,7 +271,7 @@ watch(() => props.show, (val) => {
 	if (val) {
 		opens();
 	} else {
-		close();
+		closeFun();
 	}
 })
 onMounted(() => opens())
@@ -337,6 +341,8 @@ const align_rp = computed(() => {
 function ok() {
 	if (props.disabled) return;
 	debounce(() => {
+		drawerStauts.value='close'
+		flag.value = true;
 		emits("ok")
 		closeFun()
 	}, props.duration, true)
@@ -344,29 +350,29 @@ function ok() {
 function cancel() {
 	if (props.disabled) return;
 	debounce(() => {
+		drawerStauts.value='close'
+		flag.value = true;
 		emits("cancel")
 		closeFun()
 	}, props.duration, true)
 }
 function OverLayOpen(){
-	debounce(() => {
-		nextTick(function () {
-			if (!drawerANI.value) return;
-
-			flag.value = true;
-			drawerANI.value?.play()
-			timeid.value = setTimeout(function () {
-				emits("open")
-				flag.value = false;
-			}, props.duration)
-		})
-	},  props.duration, true)
+	nextTick(()=>{
+		if (!drawerANI.value)  return;
+		drawerANI.value?.play();
+		flag.value = false;
+	})
 }
 function opens() {
 	if (props.disabled) return;
 	if (flag.value) return;
-	aniEnd.value = false;
-	reverse.value = reverse.value === false ? true : false;
+
+	debounce(() => {
+		flag.value = true;
+		aniEnd.value = false;
+		reverse.value = true;
+		drawerStauts.value='open'
+	}, props.duration, true)
 }
 //外部调用。
 function open() {
@@ -378,6 +384,17 @@ function open() {
 }
 function animationClose() {
 	aniEnd.value = true;
+	if(drawerStauts.value=='open'){
+		emits("open")
+		flag.value = false;
+		
+	}else if(drawerStauts.value=='close'){
+		emits("close")
+		emits("update:show", false)
+		_show.value=false;
+		flag.value = false;
+	}
+	drawerStauts.value=''
 }
 let timid = uni.$tm.u.getUid(1);
 let flags = false;
@@ -386,6 +403,8 @@ let flags = false;
 function close() {
 	if (props.disabled) return;
 	if (flag.value) return;
+	drawerStauts.value='close'
+	flag.value = true;
 	debounce(() => {
 		emits("cancel")
 		closeFun()
@@ -394,34 +413,23 @@ function close() {
 //内部通过点击遮罩关闭的方法.同时需要发送事件。
 
 function clickClose(e:Event) {
-	if (props.disabled) return;
+	if (props.disabled||drawerStauts.value=='open') return;
 	emits('click', e);
-	if (flag.value) return;
 	if (!props.overlayClick) return;
 	debounce(() => {
+		drawerStauts.value='close'
+		flag.value = true;
 		emits("cancel")
 		closeFun()
 	}, props.duration, true)
 }
 function closeFun() {
 	if (props.disabled) return;
-	if (flag.value) return;
+	reverse.value = false;
+	if (!drawerANI.value) return;
 	nextTick(function () {
-		reverse.value = false;
-		if (!drawerANI.value) return;
-		flag.value = true;
-		nextTick(function () {
-			drawerANI.value?.play();
-			timeid.value = setTimeout(function () {
-				if (aniEnd.value) {
-					emits("close")
-					emits("update:show", false)
-					_show.value=false;
-					flag.value = false;
-				}
-			}, props.duration)
-		})
-
+		
+		drawerANI.value?.play();
 	})
 }
 //外部调用的方法。

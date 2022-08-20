@@ -1,31 +1,30 @@
 <template>
 	<view class="fixed l-0 b-0  flex" :style="{ width: _width + 'px', height: _totalBarHeight + 'px',transform:`translateY(${props.bottom}rpx)` }">
 		<!-- 			@click="emits('click', $event)"    -->
-		<tm-sheet
-			:blur="_blur"
-			:color="props.color"
-			parenClass="relative"
-			class="relative"
-			style="top:15px;"
-			:followTheme="props.followTheme"
-			:dark="props.dark"
-			:round="props.round"
-			:shadow="props.shadow"
-			:outlined="props.outlined"
-			:border="0"
-			borderDirection="top"
-			:text="props.text"
-			:transprent="false"
-			:linear="props.linear"
-			:linearDeep="props.linearDeep"
-			:margin="[0, 0]"
-			:padding="[0, 0]"
-			:height="_BarHeight"
-			:width="_width"
-			unit="px"
-		>
-			
-		</tm-sheet>
+		<view class="relative" style="top:15px;">
+			<tm-sheet
+				:blur="_blur"
+				:color="props.color"
+				parenClass="relative"
+				class="relative"
+				:followTheme="props.followTheme"
+				:dark="props.dark"
+				:round="props.round"
+				:shadow="props.shadow"
+				:outlined="props.outlined"
+				:border="0"
+				borderDirection="top"
+				:text="props.text"
+				:transprent="false"
+				:linear="props.linear"
+				:linearDeep="props.linearDeep"
+				:margin="[0, 0]"
+				:padding="[0, 0]"
+				:height="_BarHeight"
+				:width="_width"
+				unit="px"
+			></tm-sheet>
+		</view>
 		<view class="absolute flex flex-col l-0 " :style="{ width: _width + 'px', height: _totalBarHeight + 'px'}">
 			<view class="relative barcont flex flex-row flex-row-top-center flex-around flex-1" 
 			:style="{ width: _width + 'px'}"><slot></slot></view>
@@ -136,11 +135,11 @@ provide('tmTabbarItemActive',computed(()=>_activeIndex.value))
 provide('tmTabbarItemSafe',_showSafe.value)
 provide('tmTabbarItemAutoSelect',computed(()=>props.autoSelect))
 watch(()=>props.active,()=>{
+	
 	if(props.active == _activeIndex.value) return;
 	_activeIndex.value = props.active
 })
 watch(_activeIndex,()=>{
-	
 	emits("change",_activeIndex.value)
 	emits("update:active",_activeIndex.value)
 })

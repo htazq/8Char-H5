@@ -46,39 +46,42 @@ const props = defineProps({
 const _x = computed(()=>props.x)
 
 function movestart(e:TouchEvent|MouseEvent){
+	let etype = e.type.toLocaleLowerCase();
     let ex = 0;
     let ey =0;
-    if(e.type=='mousedown'){
+    if(etype=='mousedown'){
         ex=e.pageX;
         ey=e.pageY;
-    }else if(e.type == 'touchstart'){
+    }else if(etype == 'touchstart'){
         ex=e.changedTouches[0].pageX;
         ey=e.changedTouches[0].pageY;
     }
     emits('movestart',{x:ex,y:ey})
 }
 function moveing(e:TouchEvent|MouseEvent){
+	let etype = e.type.toLocaleLowerCase();
     let ex = 0;
     let ey =0;
-    if(e.type=='mousemove'){
+    if(etype=='mousemove'){
         ex=e.pageX;
         ey=e.pageY;
-    }else if(e.type == 'touchmove'){
+    }else if(etype == 'touchmove'){
         ex=e.changedTouches[0].pageX;
         ey=e.changedTouches[0].pageY;
     }
+
     emits('moveing',{x:ex,y:ey})
      e.preventDefault()
      e.stopPropagation()
 }
 function moveend(e:TouchEvent|MouseEvent){
-
+	let etype = e.type.toLocaleLowerCase();
     let ex = 0;
     let ey =0;
-    if(e.type=='mouseup'||e.type=="mouseleave"){
+    if(etype=='mouseup'||etype=="mouseleave"){
         ex=e.pageX;
         ey=e.pageY;
-    }else if(e.type == 'touchend'){
+    }else if(etype == 'touchend'){
         ex=e.changedTouches[0].pageX;
         ey=e.changedTouches[0].pageY;
     }

@@ -7,24 +7,24 @@
 <template>
     <tm-sheet :margin="[0, 0]" :padding="[0, 0]">
         <!-- 按日选择的日期，可单选，多选。 -->
-        <range-day :followTheme="props.followTheme" ref="rDay" @confirm="confirm" @click-day="click" @change="change" @update:model-value="_value = $event"
+        <range-day :hideButton="props.hideButton" :hideTool="props.hideTool" :followTheme="props.followTheme" ref="rDay" @confirm="confirm" @click-day="click" @change="change" @update:model-value="_value = $event"
             :model-value="_value" :default-value="_value" v-if="_modelType == 'rang'" :dateStyle="props.dateStyle"
             :disabledDate="props.disabledDate"  :start="props.start"
             :end="props.end" :color="props.color" :linear="props.linear" :linearDeep="props.linearDeep"></range-day>
-        <month-day :followTheme="props.followTheme" ref="Day" @confirm="confirm" @click-day="click" @change="change" @update:model-value="_value = $event"
+        <month-day :hideButton="props.hideButton" :hideTool="props.hideTool" :followTheme="props.followTheme" ref="Day" @confirm="confirm" @click-day="click" @change="change" @update:model-value="_value = $event"
             :model-value="_value" :default-value="_value" v-if="_modelType == 'day'" :dateStyle="props.dateStyle"
             :disabledDate="props.disabledDate" :max="props.max" :multiple="props.multiple" :start="props.start"
             :end="props.end" :color="props.color" :linear="props.linear" :linearDeep="props.linearDeep"></month-day>
         <!-- 按年选择 -->
-        <year-du :followTheme="props.followTheme" ref="Year" @confirm="confirm" @click-year="click" @change="change" @update:model-value="_value = $event"
+        <year-du :hideButton="props.hideButton" :hideTool="props.hideTool" :followTheme="props.followTheme" ref="Year" @confirm="confirm" @click-year="click" @change="change" @update:model-value="_value = $event"
             :model-value="_value" :default-value="_value" v-if="_modelType == 'year'" :start="props.start"
             :end="props.end" :color="props.color" :linear="props.linear" :linearDeep="props.linearDeep"></year-du>
         <!-- 按月选择 -->
-        <month-year :followTheme="props.followTheme" ref="Month" @confirm="confirm" @click-month="click" @change="change" @update:model-value="_value = $event"
+        <month-year :hideButton="props.hideButton" :hideTool="props.hideTool" :followTheme="props.followTheme" ref="Month" @confirm="confirm" @click-month="click" @change="change" @update:model-value="_value = $event"
             :model-value="_value" :default-value="_value" v-if="_modelType == 'month'" :start="props.start"
             :end="props.end" :color="props.color" :linear="props.linear" :linearDeep="props.linearDeep"></month-year>
         <!-- 按周选择时段 -->
-        <week-day :followTheme="props.followTheme" ref="Week" @confirm="confirm" @click-week="click" @change="change" @update:model-value="_value = $event"
+        <week-day :hideButton="props.hideButton" :hideTool="props.hideTool" :followTheme="props.followTheme" ref="Week" @confirm="confirm" @click-week="click" @change="change" @update:model-value="_value = $event"
             :model-value="_value" :default-value="_value" v-if="_modelType == 'week'" :start="props.start"
             :end="props.end" :color="props.color" :linear="props.linear" :linearDeep="props.linearDeep"></week-day>
     </tm-sheet>
@@ -44,7 +44,12 @@ import monthDay from "./month-day.vue";
 import rangeDay from "./range-day.vue";
 import tmSheet from '../tm-sheet/tm-sheet.vue';
 import { monthDayItem, dateItemStyle, monthYearItem, weekItem, yearItem } from "./interface"
-const {proxy} = <any>getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
+const rDay = ref<InstanceType<typeof rangeDay> | null>(null)
+const Day = ref<InstanceType<typeof monthDay> | null>(null)
+const Year = ref<InstanceType<typeof yearDu> | null>(null)
+const Month = ref<InstanceType<typeof monthYear> | null>(null)
+const Week = ref<InstanceType<typeof weekDay> | null>(null)
 /**
  * 事件说明
  * v-model 绑定当前的时间。
@@ -135,8 +140,18 @@ const props = defineProps({
     max: {
         type: Number,
         default: 999
-    }
+    },
     /** 日历组件属性结束 */
+    //隐藏底部确认按钮
+    hideButton:{
+        type:Boolean,
+        default:false
+    },
+    //隐藏头部操作栏
+    hideTool:{
+        type:Boolean,
+        default:false
+    },
 
 })
 const _value = ref(props.defaultValue)
@@ -156,12 +171,12 @@ function confirm(e: Array<string | number>) {
     emits("update:modelValue", e)
 }
 function getRefs(){
-    if(_modelType.value=='day') return proxy.$refs.Day
-    if(_modelType.value=='rang') return proxy.$refs.rDay
-    if(_modelType.value=='week') return proxy.$refs.Week
-    if(_modelType.value=='month') return proxy.$refs.Month
-    if(_modelType.value=='year') return proxy.$refs.Year
-    return proxy.$refs.Day
+    if(_modelType.value=='day') return Day.value
+    if(_modelType.value=='rang') return rDay.value
+    if(_modelType.value=='week') return Week.value
+    if(_modelType.value=='month') return Month.value
+    if(_modelType.value=='year') return Year.value
+    return Day.value
 }
 /**
  * ref方法。外部如果要即时调用 ，请注意包裹在nextTick中执行。

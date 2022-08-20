@@ -1,9 +1,9 @@
 <template>
 
-    <tm-drawer ref="drawer" :height="dHeight" @update:show="_show = $event" :show="_show" @close="close" @open="open"
+    <tm-drawer ref="drawer" :round="props.round" :height="dHeight" @update:show="_show = $event" :show="_show" @close="close" @open="open"
         :hideHeader="true">
         <view class="mx-16 mt-24">
-            <tm-calendar-view @update:model-value="_value = $event" :model-value="_value"
+            <tm-calendar-view  :hideButton="props.hideButton" :hideTool="props.hideTool" @update:model-value="_value = $event" :model-value="_value"
                 @update:model-str="_strvalue = $event" :model-str="_strvalue" :default-value="_value" @change="change"
                 @confirm="confirm" @click="onclick" :model="props.model" :color="props.color" :linear="props.linear"
                 :linearDeep="props.linearDeep" :start="props.start" :end="props.end" :disabledDate="props.disabledDate"
@@ -23,6 +23,8 @@ import tmCalendarView from "../tm-calendar-view/tm-calendar-view.vue";
 import tmDrawer from "../tm-drawer/tm-drawer.vue";
 import { monthDayItem, dateItemStyle, monthYearItem, weekItem, yearItem } from "../tm-calendar-view/interface"
 const drawer = ref<InstanceType<typeof tmDrawer> | null>(null)
+const calendarView = ref<InstanceType<typeof tmCalendarView> | null>(null)
+ 
 /**
  * 事件说明
  * v-model 绑定当前的时间。
@@ -113,8 +115,21 @@ const props = defineProps({
     max: {
         type: Number,
         default: 999
-    }
+    },
     /** 日历组件属性结束 */
+    round: {
+		type: Number,
+		default: 12
+	},
+    hideButton:{
+        type:Boolean,
+        default:false
+    },
+    //隐藏头部操作栏
+    hideTool:{
+        type:Boolean,
+        default:false
+    },
 
 })
 
@@ -175,8 +190,17 @@ function confirm(e: Array<string | number>) {
     isConfirm.value = true;
     drawer.value?.close();
 }
+let sysinfo = uni.getSystemInfoSync()
+let win_bottom = sysinfo?.safeAreaInsets?.bottom??0
 
-const win_bottom = uni.getWindowInfo()?.safeAreaInsets?.bottom??0
+// #ifndef APP || MP-WEIXIN
+win_bottom = sysinfo?.safeArea?.bottom??0
+win_bottom = win_bottom>sysinfo.windowHeight?0:win_bottom
+// #endif
+
+if(props.hideButton){
+    win_bottom -=80;
+}
 const dHeight = computed(() => {
     if (_modelType.value == 'day') return 900+win_bottom
     if (_modelType.value == 'rang') return 900+win_bottom

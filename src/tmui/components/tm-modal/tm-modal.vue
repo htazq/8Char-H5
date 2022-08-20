@@ -1,5 +1,5 @@
 <template>
-	<tm-overlay :duration="25" @open="OverLayOpen" v-if="_show" @click="clickClose" :align="align_rp"
+	<tm-overlay blur :duration="25" @open="OverLayOpen" v-if="_show" @click="clickClose" :align="align_rp"
 		:overlayClick="false" v-model:show="_show">
 		<tm-translate @end="animationClose" :reverse="reverse_rp" :width='anwidth' :height="anheight" ref="drawerANI"
 			:auto-play="false" :name="aniname" :duration="props.duration">
@@ -10,9 +10,15 @@
 				!props.transprent ? tmcomputed.shadowColor : '',
 				customCSSStyle,
 			]" :class="[round_rp, 'flex flex-col overflow ', customClass]">
-				<view class="flex  flex-row flex-center  px-24 " style="height:44px">
-					<tm-text :dark="props.dark" :followTheme="false" _class="text-overflow-1 text-weight-b text-size-m"
+				<view class="flex flex-row px-24" style="height:44px" :class="[props.closeable?'flex-row-center-between':'flex-center']">
+					<tm-text :dark="props.dark" :followTheme="false" _class="text-overflow-1 text-weight-b text-size-m" class="flex-center"
 						:label="props.title"></tm-text>
+					<tm-icon
+						v-if="closeable"
+                        name="tmicon-times-circle-fill"
+                        :fontSize="32"
+                        @click="close"
+                    ></tm-icon>
 				</view>
 				<scroll-view scroll-y :style="[props.height ? { height: contentHeight } : '']">
 					<view class="px-32">
@@ -72,6 +78,7 @@ import { cssstyle, tmVuetify, colorThemeType } from '../../tool/lib/interface';
 import { custom_props, computedTheme, computedClass, computedStyle, computedDark } from '../../tool/lib/minxs';
 import { useTmpiniaStore } from '../../tool/lib/tmpinia';
 const drawerANI = ref<InstanceType<typeof tmTranslate> | null>(null)
+
 const store = useTmpiniaStore();
 const props = defineProps({
 	...custom_props,
@@ -83,7 +90,7 @@ const props = defineProps({
 
 	border: {
 		type: Number,
-		default: 1
+		default: 2
 	},
 	show: {
 		type: [Boolean],
@@ -104,7 +111,7 @@ const props = defineProps({
 	//弹出的动画时间单位ms.
 	duration: {
 		type: Number,
-		default: 250
+		default: 200
 	},
 	//是否允许点击遮罩关闭
 	overlayClick: {
@@ -116,7 +123,7 @@ const props = defineProps({
 		default: false
 	},
 	//如果显示关闭。标题栏被替换为左标题右关闭按钮。
-	closable: {
+	closeable: {
 		type: [Boolean],
 		default: false
 	},
@@ -190,7 +197,7 @@ const props = defineProps({
 	}
 });
 const emits = defineEmits(['click', 'open', 'close', 'update:show', 'ok', 'cancel']);
-const { proxy } = <ComponentInternalInstance>getCurrentInstance();
+const proxy = getCurrentInstance()?.proxy??null;
 // 设置响应式全局组件库配置表。
 const tmcfg = computed<tmVuetify>(() => store.tmStore);
 //自定义样式：
@@ -211,7 +218,6 @@ const okLoading = ref(false);
 let _show = ref(props.show);
 let { windowWidth, windowHeight, safeArea, statusBarHeight, titleBarHeight } = uni.getSystemInfoSync();
 let timerId = NaN;
-let timerIdth = NaN
 function debounce(func: Function, wait = 500, immediate = false) {
 	// 清除定时器
 	if (!isNaN(timerId)) clearTimeout(timerId);
@@ -279,7 +285,7 @@ const align_rp = computed(() => {
 
 async function ok() {
 	if (props.disabled) return;
-	uni.$tm.u.debounce(async () => {
+	debounce(async () => {
 		if (typeof props.beforeClose === 'function') {
 			okLoading.value = true;
 			let p = await props.beforeClose();
@@ -301,11 +307,12 @@ function cancel() {
 }
 
 function OverLayOpen() {
+	
 	debounce(() => {
 		nextTick(function () {
-			if (!proxy.$refs.drawerANI?.play) return;
+			if (!drawerANI.value) return;
 			flag.value = true;
-			proxy.$refs.drawerANI?.play();
+			drawerANI.value.play();
 			timeid.value = setTimeout(function () {
 				emits("open")
 				flag.value = false;
@@ -349,14 +356,13 @@ function clickClose(e: Event) {
 }
 function closeFun() {
 	if (props.disabled) return;
-
 	if (flag.value) return;
 	nextTick(function () {
 		reverse.value = false;
-		if (!proxy.$refs.drawerANI?.play) return;
+		if (!drawerANI.value) return;
 		flag.value = true;
 		nextTick(function () {
-			proxy.$refs.drawerANI?.play();
+			drawerANI.value?.play();
 			timeid.value = setTimeout(function () {
 				if (aniEnd.value) {
 					emits("close")
@@ -370,7 +376,7 @@ function closeFun() {
 	})
 }
 //外部调用的方法。
-defineExpose({ close: close, open: opens })
+defineExpose({ close: close, open: open })
 </script>
 
 <style scoped>
