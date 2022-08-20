@@ -3,7 +3,7 @@
 		<tm-navbar hideHome title="八字排盘">
 			<template v-slot:left></template>
 			<template v-slot:right>
-				<view class="flex flex-center flex-row">
+				<view class="flex flex-center flex-row pr-30">
 					<tm-icon
 						class="pr-30"
 						:font-size="44"
@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref,watchEffect } from 'vue';
+import { ref } from 'vue';
 import { useTmpiniaStore } from '@/tmui/tool/lib/tmpinia';
 const store = useTmpiniaStore();
 const theme_show = ref(false);

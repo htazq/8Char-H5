@@ -36,27 +36,31 @@
 			<tm-input :margin="[0, 12]" prefix="tmicon-integral" disabled v-if="lunar_label" v-model="lunar_label"></tm-input>
 
 			<tm-button block label="开始排盘" @tap="Sumbit"></tm-button>
+			<yxn-pillar-picker
+				v-model:show="pillar_select_show"
+				:default-value="pillar_default_value"
+				@Confirm="PillarConfirm"
+			></yxn-pillar-picker>
+
+			<tm-time-picker
+				v-model:show="solar_select_show"
+				:round="6"
+				:default-value="solar_default_value"
+				:height="100"
+				:start="time_pick.start"
+				:end="time_pick.end"
+				:format="time_pick.format"
+				:showDetail="time_pick.detail"
+				@confirm="SolarConfirm"
+			></tm-time-picker>
 		</tm-sheet>
 
 		<yx-friend></yx-friend>
-
-		<yxn-pillar-picker v-model:show="pillar_select_show" :default-value="pillar_default_value" @Confirm="PillarConfirm"></yxn-pillar-picker>
-
-		<tm-time-picker
-			v-model:show="solar_select_show"
-			:round="6"
-			:default-value="solar_default_value"
-			:start="time_pick.start"
-			:end="time_pick.end"
-			:format="time_pick.format"
-			:showDetail="time_pick.detail"
-			@confirm="SolarConfirm"
-		></tm-time-picker>
 	</tm-app>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { ref, watch,nextTick } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { Solar, Lunar } from 'lunar-javascript';
 import {useUserStore} from '@/store/user.ts'
@@ -117,6 +121,7 @@ function SelectTime  ()  {
 	setTimeout(()=>{
 		if (type === 0) {
 			solar_select_show.value = true;
+			nextTick()
 		} else if (type === 1) {
 			pillar_select_show.value = true;
 		}

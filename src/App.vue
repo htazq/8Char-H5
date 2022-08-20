@@ -27,21 +27,8 @@ body.pages-index-index uni-page-body,
 body {
 	padding-bottom: 0 !important;
 }
+text{
+  font-family:"sans-serif";
+}
 /* #endif */
-
-@font-face{
-	font-family: PingFangSC-Medium;
-	src: url('./static/font/pingfang-font.ttf')
-}
-
-view,
-text,
-label,
-input,
-uni-view,
-uni-text,
-uni-label,
-uni-input {
-	font-family: 'PingFangSC-Medium';
-}
 </style>
