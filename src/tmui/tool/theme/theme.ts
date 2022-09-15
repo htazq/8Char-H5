@@ -282,7 +282,10 @@ class themeColors {
 				
 			}
 			if (config.dark) {
-				txcolor.l = 55;
+				txcolor.l = 60;
+				if(!isBlackAndWhite){
+					txcolor.s = 100;
+				}
 			}
 			if (isBlack) {
 				txcolor.l = 90

@@ -7,20 +7,19 @@
 			"^yxn-(.*)": "@/yxbug-cn/yxn-$1/yxn-$1.nvue"
 		}
 	},
-	"pages": [
-		{
-			"path": "pages/index/index",
+	"pages": [{
+			"path": "pages/home/index",
 			"style": {
-				"navigationBarTitleText": "",
+				"navigationBarTitleText": "八字排盘 - 阿轩的Bug",
 				"navigationStyle": "custom",
 				"titlePenetrate": "YES",
 				"transparentTitle": "always"
 			}
 		},
 		{
-			"path": "pages/index/detail",
+			"path": "pages/detail/index",
 			"style": {
-				"navigationBarTitleText": "",
+				"navigationBarTitleText": "八字排盘 - 阿轩的Bug",
 				"navigationStyle": "custom",
 				"titlePenetrate": "YES",
 				"transparentTitle": "always"

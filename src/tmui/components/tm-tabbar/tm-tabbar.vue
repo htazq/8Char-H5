@@ -95,7 +95,7 @@ const props = defineProps({
 	
 });
 let sys = uni.getSystemInfoSync();
-const _width = uni.upx2px(props.width)||(sys?.windowWidth??0);
+const _width =computed(()=> uni.upx2px(props.width)||sys?.windowWidth||750);
 const _blur = computed(()=>props.blur)
 const _activeUrl= ref("")
 const _activeUid= ref("")

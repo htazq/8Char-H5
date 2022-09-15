@@ -10,6 +10,7 @@ import {generateFrame} from "./qrcode"
 var Canvas =null
 ,Image = null;
 
+
 /**
  * @param size {Number} canvassize
  * @param lw {Number} logo width
@@ -32,7 +33,7 @@ function computeLogoPos(size, lw, lh) {
 export async function qr(ctx,option,canvas2d) {
 
 	if(!ctx) return;
-	uni.$tm.u.toast("...",true)
+	
 	
 	var defaults = Object.assign({
 		...qrOptsDefault
@@ -146,6 +147,7 @@ function fillStyle(ctx,value,linearDir="left"){
 			if(i==len-1) stop = 1;
 			gradient.addColorStop(stop, value[i]);
 		}
+		console.log(gradient)
 		// gradient.addColorStop(1, value[1]);
 		// #ifdef APP-NVUE || MP-WEIXIN || MP-ALIPAY || MP-QQ
 		ctx.strokeStyle = gradient;
@@ -168,6 +170,9 @@ function fillStyle(ctx,value,linearDir="left"){
 }
 
 function drawImage(canvas2d,ctx,opts){
+	uni.showLoading({
+		title:"..."
+	})
 	let img = canvas2d.createImage()
 	img.width = opts.width;
 	img.height = opts.height;
@@ -175,6 +180,7 @@ function drawImage(canvas2d,ctx,opts){
 	return new Promise(res=>{
 		img.onload = function(){
 			ctx.drawImage(img, opts.x, opts.y, opts.width, opts.height)
+			uni.hideLoading()
 			res(true)
 		}
 	})

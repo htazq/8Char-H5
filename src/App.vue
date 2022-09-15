@@ -3,7 +3,7 @@ import { onPageNotFound } from '@dcloudio/uni-app';
 
 onPageNotFound(() => {
 	uni.redirectTo({
-		url: '/pages/index/index'
+		url: '/pages/home/index'
 	});
 });
 </script>
@@ -27,8 +27,8 @@ body.pages-index-index uni-page-body,
 body {
 	padding-bottom: 0 !important;
 }
-text{
-  font-family:"sans-serif";
+text {
+	font-family: 'sans-serif';
 }
 /* #endif */
 </style>

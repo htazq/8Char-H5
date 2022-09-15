@@ -39,6 +39,7 @@
 	// #ifdef APP-PLUS-NVUE
 	const Binding = uni.requireNativePlugin('bindingx');
 	const dom = uni.requireNativePlugin('dom')
+	const animation = uni.requireNativePlugin('animation')
 	// #endif
 	// 混淆props共有参数
 	const props = defineProps({
@@ -181,14 +182,6 @@
 		return animationStatus.value;
 	}
 
-	function getEl(el) {
-		if (typeof el === 'string' || typeof el === 'number') return el;
-		if (WXEnvironment) {
-			return el.ref;
-		} else {
-			return el instanceof HTMLElement ? el : el.$el;
-		}
-	}
 	onMounted(() => init())
 	onUnmounted(() => {
 		clearTimeout(tmid.value);
@@ -199,111 +192,62 @@
 		var el = proxy.$refs.nvueElAni;
 		let propsAni = {};
 		
-		dom.getComponentRect(el, function(res) {
-			const {
-				width,
-				height
-			} = res.size;
-			let elDom = getEl(el);
-			if (animationName.value == 'fade') {
-				propsAni = {
-					exitExpression: `t>${durationtos.value}`,
-					props: [{
-						element: elDom,
-						property: 'opacity',
-						expression: `linear(t,0,1,${durationtos.value})`
-					}]
-				}
-			} else if (animationName.value == 'up') {
-				propsAni = {
-					exitExpression: `t>${durationtos.value}`,
-					props: [{
-						element: elDom,
-						property: 'transform.translateY',
-						expression: computedReverse.value ?
-							`easeOutSine(t,-${height},${height},${durationtos.value})` :
-							`linear(t,${0},-${height},${durationtos.value})`
-					}]
-				}
-			} else if (animationName.value == 'down') {
-				propsAni = {
-					exitExpression: `t>${durationtos.value}`,
-					props: [{
-						element: elDom,
-						property: 'transform.translateY',
-						expression: computedReverse.value ?
-							`easeOutSine(t,${height},-${height},${durationtos.value})` :
-							`linear(t,${0},${height},${durationtos.value})`
-					}]
-				}
-			} else if (animationName.value == 'right') {
-				propsAni = {
-					exitExpression: `t>${durationtos.value}`,
-					props: [{
-						element: elDom,
-						property: 'transform.translateX',
-						expression: computedReverse.value ?
-							`easeOutSine(t,${width},-${width},${durationtos.value})` :
-							`linear(t,${0},${width},${durationtos.value})`
-					}]
-				}
-			} else if (animationName.value == 'left') {
-				propsAni = {
-					exitExpression: `t>${durationtos.value}`,
-					props: [{
-						element: elDom,
-						property: 'transform.translateX',
-						expression: computedReverse.value ?
-							`easeOutSine(t,-${width},${width},${durationtos.value})` :
-							`linear(t,${0},-${width},${durationtos.value})`
-					}]
-				}
-			} else if (animationName.value == 'zoom') {
-
-				propsAni = {
-					exitExpression: `t>${durationtos.value}`,
-					props: [{
-							element: elDom,
-							property: 'transform.scale',
-							expression: computedReverse.value ?
-								`linear(t,1,-0.7,${durationtos.value})` :
-								`linear(t,0.7,0.3,${durationtos.value})`
-						},
-						{
-							element: elDom,
-							property: 'opacity',
-							expression: computedReverse.value ?
-								`linear(t,1,-1,${durationtos.value})` :
-								`linear(t,0,1,${durationtos.value})`
-						}
-					]
-				}
+		if (animationName.value == 'fade') {
+			propsAni = {
+				opacity:computedReverse.value?0:1,
+				transformOrigin: 'center center'
+			}
+			
+		} else if (animationName.value == 'up') {
+			propsAni = {
+				opacity:1,
+				transform:computedReverse.value?'translateY(0%)':'translateY(-100%)',
+				transformOrigin: 'center center'
 			}
 
-			emits('start');
-			animationStatus.value = 1;
-			let main_binding = Binding.bind({
-				eventType: 'timing',
-				...propsAni
-			}, function(res) {
-				if (res.state === 'exit') {
-					emits('end');
-					animationStatus.value = 2;
-					Binding.unbind({
-						token: res.token,
-						eventType: 'timing'
-					})
-				}
-			});
-		})
-
+		} else if (animationName.value == 'down') {
+			propsAni = {
+				opacity:1,
+				transform:computedReverse.value?'translateY(0%)':'translateY(100%)',
+				transformOrigin: 'center center'
+			}
+		} else if (animationName.value == 'right') {
+			propsAni = {
+				opacity:1,
+				transform:computedReverse.value?'translateX(0%)':'translateX(100%)',
+				transformOrigin: 'center center'
+			}
+		} else if (animationName.value == 'left') {
+			propsAni = {
+				opacity:1,
+				transform:computedReverse.value?'translateX(0%)':'translateX(-100%)',
+				transformOrigin: 'center center'
+			}
+		} else if (animationName.value == 'zoom') {
+			propsAni = {
+				opacity:computedReverse.value?0:1,
+				transform:computedReverse.value?'scale(0.7,0.7)':'scale(1,1)',
+				transformOrigin: 'center center'
+			}
+		}
+		emits('start');
+		animationStatus.value = 1;
+		clearTimeout(tmid.value)
+		tmid.value = setTimeout(function() {
+			animation.transition(el, {
+				styles: propsAni,
+				duration: props.duration, //ms
+				timingFunction: 'ease',
+				delay: 0//ms
+			},()=>{
+				emits('end');
+				animationStatus.value = 2;
+			})
+		}, 20);
 	}
-	
-
 	function noNvueAmations() {
 
 		animationData.value = null;
-		
 		//复位。
 		nextTick(function() {
 			var animation = uni.createAnimation({
@@ -320,26 +264,26 @@
 				});
 			} else if (animationName.value == 'up') {
 				let opacity = computedReverse.value ? '-101%' : '0%';
-				animation.translateY(opacity).step({
+				animation.translateY(opacity).opacity(1).step({
 					duration: 0
 				});
 			} else if (animationName.value == 'down') {
 				let opacity = computedReverse.value ? '101%' : '0%';
-				animation.translateY(opacity).step({
+				animation.translateY(opacity).opacity(1).step({
 					duration: 0
 				});
 			} else if (animationName.value == 'left') {
 				let opacity = computedReverse.value ? '-101%' : '0%';
-				animation.translateX(opacity).step({
+				animation.translateX(opacity).opacity(1).step({
 					duration: 0
 				});
 			} else if (animationName.value == 'right') {
 				let opacity = computedReverse.value ? '101%' : '0';
-				animation.translateX(opacity).step({
+				animation.translateX(opacity).opacity(1).step({
 					duration: 0
 				});
 			} else if (animationName.value == 'zoom') {
-				let scale = computedReverse.value ? [1, 1] : [0.7, 0.7];
+				let scale = computedReverse.value ? [1, 1] : [0.8, 0.8];
 				let opacity = computedReverse.value ? 1 : 0;
 				animation.scale(...scale).opacity(opacity).step({
 					duration: 0
@@ -356,18 +300,18 @@
 					animation.opacity(opacity).step();
 				} else if (animationName.value == 'up') {
 					let opacity = computedReverse.value ? '0%' : '-101%';
-					animation.translateY(opacity).step();
+					animation.translateY(opacity).opacity(1).step();
 				} else if (animationName.value == 'down') {
 					let opacity = computedReverse.value ? '0%' : '101%';
-					animation.translateY(opacity).step();
+					animation.translateY(opacity).opacity(1).step();
 				} else if (animationName.value == 'left') {
 					let opacity = computedReverse.value ? '0%' : '-101%';
-					animation.translateX(opacity).step();
+					animation.translateX(opacity).opacity(1).step();
 				} else if (animationName.value == 'right') {
 					let opacity = computedReverse.value ? '0' : '101%';
-					animation.translateX(opacity).step();
+					animation.translateX(opacity).opacity(1).step();
 				} else if (animationName.value == 'zoom') {
-					let scale = computedReverse.value ? [0.7, 0.7] : [1, 1];
+					let scale = computedReverse.value ? [0.8, 0.8] : [1, 1];
 					let opacity = computedReverse.value ? 0 : 1;
 					animation.scale(...scale).opacity(opacity).step();
 				}
@@ -379,7 +323,7 @@
 					emits('end');
 					animationStatus.value = 2;
 				}, durationtos.value)
-			}, detalTime)
+			}, 50)
 		})
 	}
 </script>
@@ -394,7 +338,7 @@
 	}
 
 	.up {
-		transform: translate3d(0,0%0);
+		transform: translateY(0%);
 	}
 
 	.up-reverse {

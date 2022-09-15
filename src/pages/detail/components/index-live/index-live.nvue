@@ -1,0 +1,5 @@
+<template>
+	<view class="mb-20">
+		<view class="px-30 pt-18"><yxn-coding title="在线批命"></yxn-coding></view>
+	</view>
+</template>

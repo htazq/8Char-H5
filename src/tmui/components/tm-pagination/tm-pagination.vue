@@ -3,6 +3,7 @@
 		<view v-if="!simple" class="flex flex-row relative flex-center" :class="[props.disabled?'opacity-5':'']">
 			<tm-sheet 
 			noLevel
+			hover-class="keywordBoradAni opacity-5"
 			@click="btnClick(item)"
 			:width="70" :height="70" 
 			:padding="[0,0]" 
@@ -23,8 +24,9 @@
 		<view v-if="simple" class="flex flex-row relative flex-center" :class="[props.disabled?'opacity-5':'']">
 			<tm-sheet
 			noLevel
+			hover-class="keywordBoradAni opacity-5"
 			@click="pnbtn('prev')"
-			:width="120" :height="70" 
+			:width="140" :height="70" 
 			:padding="[0,0]" 
 			:round='props.round' 
 			:shadow="props.shadow" 
@@ -37,11 +39,12 @@
 			:margin="[10,24]" >
 				<tm-icon :userInteractionEnabled="false" :dark="props.dark" color="grey-darken-2" :fontSize="24" :followTheme="false" name="tmicon-angle-left"></tm-icon>
 			</tm-sheet>
-			<tm-text :dark="props.dark" _style="line-height:70rpx;" _class="px-24" :label="`${computedCurrent}/${pages}`"></tm-text>
+			<tm-text :dark="props.dark" _style="line-height:70rpx;" _class="px-40" :label="`${computedCurrent}/${pages}`"></tm-text>
 			<tm-sheet
 			noLevel
+			hover-class="keywordBoradAni opacity-5"
 			@click="pnbtn('next')"
-			:width="120" :height="70" 
+			:width="140" :height="70" 
 			:padding="[0,0]" 
 			:round='props.round' 
 			:shadow="props.shadow" 
@@ -253,5 +256,5 @@
 </script>
 
 <style>
-
+	@import url(./ani.css);
 </style>

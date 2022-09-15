@@ -1,9 +1,4 @@
-<!--
- * @Date: 2022-05-07 14:25:19
- * @LastEditors: tmzdy
- * @Author: tmzdy
- * @Description: 文件
--->
+
 <template>
     <tm-sheet :margin="[0, 0]" :padding="[0, 0]">
         <!-- 按日选择的日期，可单选，多选。 -->

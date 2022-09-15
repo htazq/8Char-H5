@@ -10,7 +10,7 @@
     </tm-drawer>
 </template>
 <script lang="ts" setup>
-import { ref,computed, watch, toRaw,getCurrentInstance,nextTick } from "vue"
+import { ref,computed, watch, toRaw,getCurrentInstance,nextTick,inject,PropType } from "vue"
 import { custom_props, computedDark } from '../../tool/lib/minxs';
 import tmDrawer from '../tm-drawer/tm-drawer.vue';
 import keyboradNumber from "./keyborad-number.vue";
@@ -20,7 +20,6 @@ import keyboradCar from "./keyborad-car.vue"
 import { useTmpiniaStore } from '../../tool/lib/tmpinia';
 const store = useTmpiniaStore();
 const emits=defineEmits(["change","confirm","update:show","update:modelValue"])
-const {proxy} = getCurrentInstance();
 const drawer = ref<InstanceType<typeof tmDrawer> | null>(null)
 const props = defineProps({
     ...custom_props,
@@ -33,7 +32,7 @@ const props = defineProps({
 	 * 密码     | 身份证|  车牌 | 数字键盘
 	 */
 	type:{
-		type:String,
+		type:String as PropType<"password"|"card"|"car"|"number">,
 		default:'number'
 	},
 	//显示隐藏键盘可v-model:show
@@ -68,7 +67,7 @@ const props = defineProps({
 	// 是否显示输入内容在键盘顶部。
 	showInputContent:{
 		type:Boolean,
-		default:false
+		default:true
 	},
 })
 // 设置响应式全局组件库配置表。
@@ -77,6 +76,9 @@ const tmcfg = computed(() => store.tmStore);
 const isDark = computed(() => computedDark(props, tmcfg.value));
 const showPop = ref(props?.show??false);
 const _value = ref(props?.defaultValue??"");
+const sysinfo = inject("tmuiSysInfo",computed(()=>{
+	return {bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null}
+}))
 const _typemodel = computed(()=>props.type)
 watch(()=>props.show,()=>{
 	showPop.value = props.show;
@@ -120,7 +122,7 @@ function change(){
 		emits("change",toRaw(_value.value))
 	})
 	// #ifdef MP
-	uni.vibrateShort()
+	uni.vibrateShort({})
 	// #endif
 }
 function confirm(){
@@ -132,16 +134,7 @@ function confirm(){
 }
 
 
-// #ifdef APP || MP-WEIXIN
-let win_bottom = uni.getSystemInfoSync()?.safeAreaInsets?.bottom??0
-// #endif
-// #ifndef APP || MP-WEIXIN
-let win_bottom = uni.getSystemInfoSync()?.safeArea?.bottom??0
-win_bottom = win_bottom>uni.getSystemInfoSync().windowHeight?0:win_bottom
-// #endif
-
 const dHeight = computed(() => {
-    
-    return 520+win_bottom
+    return 520+sysinfo.value.bottom
 })
 </script>

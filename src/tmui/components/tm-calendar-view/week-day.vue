@@ -1,9 +1,4 @@
-<!--
- * @Date: 2022-05-07 14:25:19
- * @LastEditors: tmzdy
- * @Author: tmzdy
- * @Description: 文件
--->
+
 <template>
 	<view class="flex flex-col relative">
 		
@@ -75,6 +70,7 @@ import tmButton from "../tm-button/tm-button.vue"
 import * as dayjs from "../../tool/dayjs/esm/index"
 import isoWeek from "../../tool/dayjs/esm/plugin/isoWeek/index"
 import isSameOrBefore from "../../tool/dayjs/esm/plugin/isSameOrBefore/index"
+import isSameOrAfter from "../../tool/dayjs/esm/plugin/isSameOrAfter/index"
 import isBetween from "../../tool/dayjs/esm/plugin/isBetween/index"
 import {weekItem} from "./interface"
 import { useTmpiniaStore } from '../../tool/lib/tmpinia';
@@ -140,9 +136,12 @@ const _color = computed(()=>{
 	return props.color
 })
 const DayJs = dayjs.default;
+
 DayJs.extend(isoWeek)
 DayJs.extend(isSameOrBefore)
+DayJs.extend(isSameOrAfter)
 DayJs.extend(isBetween)
+
 //当前的时间
 const _value = ref( DayJs(props.defaultValue[0]).isValid()?DayJs(props.defaultValue[0]):DayJs())
 //当前的周次。
@@ -205,7 +204,8 @@ function canSelected(num:number){
     let index  = _dataWeek.value.findIndex(el=>el==num);
     let item = _data.value[index];
     let ar = item.filter(el=>!el.isVaild)
-    return ar.length==7
+    
+    return ar.length>0
 }
 function nextYear(){
     _value.value = _value.value.add(1,'year');
@@ -331,9 +331,25 @@ function updateTimes(){
 }
 function confirm(){
     let index  = _dataWeek.value.findIndex(el=>el==_weekNum.value);
-    let item = _data.value[index];
+    let item = [..._data.value[index]];
     let start = item[0].dateStr
+    // 最开始的日期如果在start后就可以直接读取
+    for(let i= 0;i<item.length;i++){
+        if(DayJs(item[i].dateStr).isSameOrAfter(props.start,'date')){
+            start = item[i].dateStr
+            break;
+        }
+    }
     let end = item[item.length-1].dateStr
+    item = item.reverse()
+    console.log(item)
+    for(let i= 0;i<item.length;i++){
+        if(DayJs(item[i].dateStr).isSameOrBefore (props.end,'date')){
+            end = item[i].dateStr
+            break;
+        }
+    }
+
     emits("update:modelValue",[start,end])
     emits("confirm",[start,end])
     

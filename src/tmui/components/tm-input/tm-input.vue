@@ -10,7 +10,7 @@
 			:linear="props.linear"
 			:linearDeep="props.linearDeep"
 			>
-            <view class="flex flex-row " @click="inputClick($event,'ali')"
+            <view class="flex flex-row " @click="inputClick($event,'')"
                 :class="[propsDetail.type == 'textarea' ? 'flex-row-top-center' : 'flex-row-center-center']"
                 :style="[{ height: `${_height}rpx` }]">
 
@@ -23,7 +23,7 @@
                     <tm-text :font-size="propsDetail.fontSize" :label="propsDetail.prefixLabel"></tm-text>
                 </view>
 
-                <view v-if="!isAndroid" @click.stop="inputClick" class="flex-1 relative flex-row flex"
+                <view v-if="!isAndroid" @click.stop="inputClick($event,'ali')" class="flex-1 relative flex-row flex"
                     :style="[{ width: '0px' }]">
                     <!-- <view @click.stop="emits('click',$event)" class=" l-0 t-0 flex-1 " :style="{height: `${_height}rpx`,background:'red'}"></view> -->
                     <input  class="flex-1" :userInteractionEnabled="false" v-if="propsDetail.type != 'textarea'"
@@ -67,7 +67,7 @@
                 </view>
                 <view v-if="isAndroid" class="flex-1 relative flex-row flex " :style="[{ width: '0px' }]">
                     <!-- <view @click.stop="emits('click',$event)" class=" l-0 t-0 flex-1 " :style="{height: `${_height}rpx`,background:'red'}"></view> -->
-                    <input class="flex-1" @click="emits('click', $event)" :userInteractionEnabled="false"
+                    <input class="flex-1" @click.stop="emits('click', $event)" :userInteractionEnabled="false"
                         v-if="propsDetail.type != 'textarea'" :value="_value" :focus="propsDetail.focus" @focus="focus" @blur="blur"
                         @confirm="confirm" @input="inputHandler" @keyboardheightchange="emits('keyboardheightchange')"
                         :password="showPasswordText" :disabled="propsDetail.disabled"
@@ -83,7 +83,7 @@
                                 'fontSize': `${propsDetail.fontSize_px}px`
                             },
                         ]" :placeholder-style="`fontSize:${propsDetail.fontSize_px}px`" />
-                    <textarea @click="emits('click', $event)" :userInteractionEnabled="false"
+                    <textarea @click.stop="emits('click', $event)" :userInteractionEnabled="false"
                         v-if="propsDetail.type == 'textarea'" :value="_value" :focus="propsDetail.focus" @focus="focus" @blur="blur"
                         @confirm="confirm" @input="inputHandler" @keyboardheightchange="emits('keyboardheightchange')"
                         :disabled="propsDetail.disabled"
@@ -385,7 +385,7 @@ while (parentFormItem) {
 }
 
 const isAndroid = ref(false)
-isAndroid.value = uni.getSystemInfoSync().platform == 'android' ? true : false;
+isAndroid.value = uni.getSystemInfoSync().osName == 'android' ? true : false;
 const _height = computed(() => props.height)
 const _inputPadding = computed(() => {
     if (props.search !== '' || props.searchLabel !== '') {
@@ -534,12 +534,15 @@ function inputHandler(e:CustomEvent) {
 	
     return e.detail.value;
 }
-function inputClick(e:Event,type){
+function inputClick(e:Event,type:string){
 	e.stopPropagation()
-	
-	debounce(()=>emits('click', e),150,true)
+    if(type=='ali'){
+        debounce(()=>emits('click', e),500,true)
+        return;
+    }
+	debounce(()=>emits('click', e),500,true)
 }
-watch(_value,()=>debounce(pushFormItem,150))
+watch(_value,()=>debounce(pushFormItem,200))
 
 //--------------以下是专门为form表单专用------------------
 const tmFormFun = inject("tmFormFun", computed(() => ""))

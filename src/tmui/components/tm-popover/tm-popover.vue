@@ -187,9 +187,11 @@ const props = defineProps({
 		default: "提示内容"
 	}
 })
-const info = uni.getSystemInfoSync();
-const windowWidth = ref(info.windowWidth)
-const windowHeight = ref(info?.safeArea?.height??info.windowHeight)
+const sysinfo = inject("tmuiSysInfo",computed(()=>{
+	return {bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null}
+}))
+const windowWidth = computed(()=>sysinfo.value.width)
+const windowHeight = computed(()=>sysinfo.value.height)
 let isNvue = ref(false)
 // #ifdef APP-PLUS-NVUE
 isNvue.value = true;

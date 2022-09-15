@@ -54,7 +54,7 @@
 				props.semicircle && !props.semicircleFlip ? { 'justify-content': 'flex-end', 'align-items': 'center' } : '',
 			
 			]" class="relative absolute l-0 t-0 flex flex-col" :class="[!props.semicircle ? 'flex-center' : '']">
-				<cover-view :style="[{ fontSize: props.fontSize + 'rpx', color: isDark ? darkcolor : txtcolor }]">
+				<cover-view  v-if="props.showBar" :style="[{ fontSize: props.fontSize + 'rpx', color: isDark ? darkcolor : txtcolor }]">
 					<slot name="title">
 						{{ props.percent + props.percentSuffix }}
 					</slot>
@@ -68,7 +68,7 @@
 				props.semicircle && !props.semicircleFlip ? { 'justify-content': 'flex-end', 'align-items': 'center' } : '',
 			]" class="relative absolute l-0 t-0 flex flex-col" :class="[!props.semicircle ? 'flex-center' : '']">
 				<slot name="title">
-					<tm-text :color="props.color" :followTheme="props.followTheme" :dark="props.dark"
+					<tm-text v-if="props.showBar" :color="props.color" :followTheme="props.followTheme" :dark="props.dark"
 						:fontSize="props.fontSize" :label="props.percent + props.percentSuffix"></tm-text>
 				</slot>
 				
@@ -86,7 +86,7 @@
  */
 import { cssstyle, tmVuetify, colorThemeType } from '../../tool/lib/interface';
 import { custom_props, computedDark, computedTheme } from '../../tool/lib/minxs';
-import { getCurrentInstance, computed, ref, provide, inject, onUpdated, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { getCurrentInstance, computed, ref, provide, inject, onUpdated, onMounted, onUnmounted, nextTick, watch, PropType } from 'vue';
 import tmSheet from "../tm-sheet/tm-sheet.vue";
 import tmText from "../tm-text/tm-text.vue";
 import tool from '../../tool/theme/theme'
@@ -104,7 +104,7 @@ const vnodeCtx = proxy
 const props = defineProps({
 	...custom_props,
 	model: {
-		type: String,
+		type: String as PropType<'line'|'circle'>,
 		default: 'line' //line,circle
 	},
 	//model==circle,是否是半圆。
@@ -185,7 +185,6 @@ const canvasId = ref("canvasId")
 // #ifndef MP-WEIXIN || MP-QQ
 canvasId.value = "tm" + String(new Date().getTime());
 // #endif
-console.log(canvasId.value)
 let ctx:UniApp.CanvasContext;
 const shadow_pr = computed(() => props.shadow * 4)
 // 设置响应式全局组件库配置表。
@@ -417,12 +416,12 @@ function drawNvue_draw() {
 	}
 	ctx.stroke();
 	ctx.closePath();
-	
+
 	// #ifdef APP-NVUE
-	ctx.clearRect(0, 0, props.width, props.width)
+	// ctx.clearRect(0, 0, props.width, props.width)
 	// #endif
 	// ctx.clearRect(0, 0, props.width, props.width)
-	ctx.save()
+	
 	//绘制进度半圆。
 	let blv = Math.PI / 50;
 	let jinduo = (percent_rp.value - 25) * blv

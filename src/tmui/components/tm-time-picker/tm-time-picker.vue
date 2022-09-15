@@ -1,5 +1,5 @@
 <template>
-    <tm-drawer  :round="props.round" ref="drawer" :height="dHeight" 
+    <tm-drawer  :disabbleScroll="true" :round="props.round" ref="drawer" :height="dHeight" 
 	@update:show="_show = $event" :show="_show" @close="close" 
 	:ok-color="props.color"
 	@open="open"
@@ -28,7 +28,7 @@
 			@click="confirm" 
 			:round="props.btnRound">
             </tm-button>
-			<view :style="{height: win_bottom+'px'}"></view>
+			<view :style="{height: sysinfo.bottom+'px'}"></view>
     </tm-drawer>
 </template>
 <script lang="ts" setup>
@@ -36,7 +36,7 @@
  * 日历(弹层式)
  * @description 用法见：tm-calendar-view组件，与其一致的用法。
  */
-import { computed, ref, watch, PropType, Ref, getCurrentInstance, nextTick, watchEffect } from "vue"
+import { computed, ref, watch, PropType, Ref,inject, getCurrentInstance, nextTick, watchEffect } from "vue"
 import { custom_props, computedTheme, computedClass, computedStyle, computedDark } from '../../tool/lib/minxs';
 import tmTimeView from "../tm-time-view/tm-time-view.vue";
 import tmDrawer from "../tm-drawer/tm-drawer.vue";
@@ -153,14 +153,11 @@ const _value = ref(props.defaultValue)
 const _strvalue = ref("")
 
 
-// #ifdef APP || MP-WEIXIN
-let win_bottom = uni.getSystemInfoSync()?.safeAreaInsets?.bottom??0
-// #endif
-// #ifndef APP || MP-WEIXIN
-let win_bottom = uni.getSystemInfoSync()?.safeArea?.bottom??0
-win_bottom = win_bottom>uni.getSystemInfoSync().windowHeight?0:win_bottom
-// #endif
+const sysinfo = inject("tmuiSysInfo",computed(()=>{
+    return {bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null}
+}))
 
+ 
 function close() {
     if (!isConfirm.value) {
         emits("cancel")
@@ -198,6 +195,6 @@ function confirm() {
 }
 
 const dHeight = computed(() => {
-    return props.height+win_bottom+80
+    return props.height+sysinfo.value.bottom+80
 })
 </script>

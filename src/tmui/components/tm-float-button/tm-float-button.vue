@@ -49,7 +49,7 @@
  * @method click 主按钮被点击，(e:Event)
  * @method change  子按钮被点击， (index:number,item:actionsItem)
  */
-import { computed, PropType , ref } from "vue";
+import { computed, PropType , ref,inject } from "vue";
 import { positionType, popDir ,actionsItem } from "./interface";
 import tmSheet from "../tm-sheet/tm-sheet.vue";
 import tmIcon from "../tm-icon/tm-icon.vue";
@@ -125,8 +125,12 @@ const props = defineProps({
     }
 })
 
-let { windowTop, windowWidth } = uni.getSystemInfoSync()
-windowTop = windowTop || 0;
+const sysinfo = inject("tmuiSysInfo",computed(()=>{
+	return {bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null}
+}))
+const windowWidth = computed(()=>sysinfo.value.width)
+const windowTop = computed(()=>sysinfo.value.top)
+
 const isH5 = ref(false)
 // #ifdef H5
 isH5.value=true;
@@ -142,9 +146,9 @@ const _offset = computed(() => {
     return ost;
 })
 const centerPosLeft = computed(() => {
-    let ps = (windowWidth - uni.upx2px(props.width*1.5)) / 2 + uni.upx2px(_offset.value[0])
+    let ps = (windowWidth.value - uni.upx2px(props.width*1.5)) / 2 + uni.upx2px(_offset.value[0])
     // #ifndef APP-NVUE
-    ps = (windowWidth - uni.upx2px(props.width*2)) / 2 + uni.upx2px(_offset.value[0])
+    ps = (windowWidth.value - uni.upx2px(props.width*2)) / 2 + uni.upx2px(_offset.value[0])
     // #endif
     return ps
 })
@@ -378,7 +382,7 @@ const parent_style = computed(() => {
     }
 })
 
-function onclick(e){
+function onclick(e:any){
     if(props.clickHidnActions){
         showActions.value = !showActions.value
     }else{

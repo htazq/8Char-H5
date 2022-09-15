@@ -1,19 +1,24 @@
 <template>
 	<view>
-		<view v-if="!props.label || props.vertical"
-			:style="[{backgroundColor: (props.realColor?tmcomputed.color:tmcomputed.border)}, props.vertical ? { width: props.border+'rpx', height: props.height + 'rpx' } : '']"
+		<view v-if="!_label && props.vertical"
+			:style="[{backgroundColor: (_realColor?tmcomputed.color:tmcomputed.border)}, props.vertical ? { width: props.border+'rpx', height: props.height + 'rpx' } : '']"
 			:class="[props.vertical ? `mx-${props.margin[0]}` : `my-${props.margin[1]}`]"></view>
-		<view v-if="label && !props.vertical" class="flex flex-row flex-center">
-			<view :style="[tmcomputed ? { backgroundColor: (props.realColor?tmcomputed.color:tmcomputed.border), height: props.border + 'rpx' } : '']"
+		<view v-if="_label && !props.vertical" class="flex flex-row flex-center">
+			<view :style="[tmcomputed ? { backgroundColor: (_realColor?tmcomputed.color:tmcomputed.border), height: props.border + 'rpx' } : '']"
 				:class="[`my-${props.margin[1]}`, align == 'left' ? 'flex-2' : '', align == 'right' ? 'flex-10' : '', align == 'center' ? 'flex-1' : '']">
 			</view>
-			<view :class="[(isDark ? 'opacity-4' : '')]">
+			<view v-if="props.label" :class="[(isDark ? 'opacity-4' : '')]">
 				<tm-text :fontSize="props.fontSize" :dark="isDark" :followTheme="props.followTheme" :color="props.fontColor"
 					:label="props.label" :_class="['mx-32']"></tm-text>
 			</view>
-			<view :style="[tmcomputed ? { backgroundColor:(props.realColor?tmcomputed.color:tmcomputed.border), height: props.border + 'rpx' } : '']"
+			<view :style="[tmcomputed ? { backgroundColor:(_realColor?tmcomputed.color:tmcomputed.border), height: props.border + 'rpx' } : '']"
 				:class="[`my-${props.margin[1]}`, align == 'left' ? 'flex-10' : '', align == 'right' ? 'flex-2' : '', align == 'center' ? 'flex-1' : '']">
 			</view>
+		</view>
+		<view v-if="!_label && !props.vertical" class="flex flex-row flex-center">
+			<view class="flex-1" :class="[`my-${props.margin[1]}`]" :style="[tmcomputed ? { backgroundColor: (_realColor?tmcomputed.color:tmcomputed.border), height: props.border + 'rpx' } : '']">
+			</view>
+			
 		</view>
 	</view>
 </template>
@@ -86,9 +91,11 @@ const props = defineProps({
 });
 //线的方向。
 const borderDir = computed(() => props.vertical ? 'left' : 'bottom');
+const _label = computed(() => props.label);
 const proxy = getCurrentInstance()?.proxy??null;
 // 设置响应式全局组件库配置表。
 const tmcfg = computed<tmVuetify>(() => store.tmStore);
+const _realColor = computed(()=>props.realColor)
 //自定义样式：
 //const customCSSStyle = computedStyle(props);
 //自定类

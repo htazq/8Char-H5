@@ -309,7 +309,7 @@ type tmUtil = {
 			 * 请一定要在onMounted或者onLoad中调用，否则不准确在h5端。
 			 * @return {height,width,top,isCustomHeader,sysinfo}
 			 */
-			getWindow():{width:number,height:number,top:number,isCustomHeader:Boolean,sysinfo:UniApp.GetSystemInfoResult},
+			getWindow():{width:number,height:number,top:number,bottom:number,isCustomHeader:Boolean,sysinfo:UniApp.GetSystemInfoResult},
 
             /**
              * 打开页面路径
@@ -318,5 +318,16 @@ type tmUtil = {
              */
             routerTo(url:string,type:openUrlType):void
             
-    }
+    },
+	tmicon:Array<{
+		font:string,
+		prefix:string,
+		fontJson:Array<{
+			icon_id: string,
+			name: string,
+			font_class:string,
+			unicode: string,
+			unicode_decimal: number
+		}>
+	}>
 }

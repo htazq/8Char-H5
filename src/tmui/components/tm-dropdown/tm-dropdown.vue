@@ -250,6 +250,9 @@
 	// #ifdef APP-PLUS-NVUE
 	const dom = uni.requireNativePlugin('dom')
 	// #endif
+	const sysinfo = inject("tmuiSysInfo",computed(()=>{
+		return {bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null}
+	}))
 	const emits = defineEmits(['click'])
 	const proxy = getCurrentInstance()?.proxy??null;
 	const aniDom = ref<InstanceType<typeof tmTranslate> | null>(null)
@@ -296,9 +299,8 @@
 			default:false
 		},
 	})
-	const info = uni.getSystemInfoSync();
-	const windowWidth = ref(info.windowWidth)
-	const windowHeight = ref(info?.safeArea?.height??info.windowHeight)
+	const windowWidth = computed(()=>sysinfo.value.width)
+	const windowHeight = computed(()=>sysinfo.value.height)
 	let isNvue = ref(false)
 	// #ifdef APP-PLUS-NVUE
 	isNvue.value =true;

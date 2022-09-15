@@ -1,9 +1,4 @@
-<!--
- * @Date: 2022-05-07 14:25:19
- * @LastEditors: tmzdy
- * @Author: tmzdy
- * @Description: 文件
--->
+
 <template>
 	<view class="flex flex-col relative">
 		

@@ -1,6 +1,7 @@
 <template>
 	<view class="flex flex-col overflow" :class="[disabled ? 'opacity-7' : '']">
-		<tm-sheet @click="openAndClose"  :color="props.color" :text="disabled" :border="cborder" :linear="props.linear"
+		<tm-sheet :transprent="props.transprent" @click="openAndClose"  
+		:color="props.color" :text="disabled" :border="isActive?0:cborder" :linear="props.linear"
 			:linearDeep="props.linearDeep"  :dark="props.dark"
 			:followDark="props.followDark" :followTheme="props.followTheme" borderDirection="bottom" :margin="props.margin" :padding="props.padding"
 			>
@@ -12,14 +13,14 @@
 						></tm-icon>
 				</view>
 				<slot name="icon">
-					<view class="flex flex-center pr-16">
+					<view v-if="_leftIcon" class="flex flex-center pr-16">
 						<tm-icon style="line-height:0px" :color="_leftIconColor" :font-size="24" :name="_leftIcon"></tm-icon>
 					</view>
 				</slot>
 				<view class="flex  flex-1" style="width:0px">
 					<slot name="title" :data="{ isActive: isActive }">
 						<tm-text _class=""  :dark="props.dark"  :followDark="props.followDark"
-							:fontSize="30" :color="isActive ? props.activeColor : ''"
+							:fontSize="props.titleSize" :color="isActive ? props.activeColor : ''"
 							 :label="props.title"></tm-text>
 					</slot>
 				</view>
@@ -33,7 +34,7 @@
 			</view>
 		</tm-sheet>
 		
-		<view v-if="isActive" class="pb-24  flex overflow">
+		<view v-if="isActive" class="flex overflow">
 			<view class="flex content flex-col flex-1"  :class="[ isActiveAfter?'on':'']">
 				<slot></slot>
 			</view>
@@ -67,6 +68,10 @@ const proxy = getCurrentInstance()?.proxy??null;
 const emits = defineEmits(['click'])
 const props = defineProps({
 	...custom_props,
+	transprent:{
+		type: Boolean,
+		default: false
+	},
 	color: {
 		type: String,
 		default: 'white'
@@ -74,6 +79,10 @@ const props = defineProps({
 	title: {
 		type: String,
 		default: ''
+	},
+	titleSize: {
+		type: Number,
+		default: 30
 	},
 	height: {
 		type: Number,

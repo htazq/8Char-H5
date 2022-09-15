@@ -1,11 +1,11 @@
 <template>
-  <tm-sheet :round="3" _class="flex flex-col overflow" :padding="props.padding" :margin="props.margin">
+  <tm-sheet  :transprent="props.transprent" :round="3" _class="flex flex-col overflow" :padding="props.padding" :margin="props.margin">
       <slot></slot>
   </tm-sheet>
 </template>
 
 <script lang="ts" setup>
-/**
+/** 
  * 表单
  * @description 注意，内部需要放置tm-form-item,不限层级，可随意布局。
  * 对以下表单类组件进行字段收集。
@@ -60,6 +60,10 @@ const props = defineProps({
 	border:{
 		type:Boolean,
 		default:true
+	},
+	transprent:{
+		type:Boolean,
+		default:false
 	}
 })
 const _modelVal = ref({})
@@ -83,6 +87,7 @@ provide("tmFormLabelWidth",computed(()=>props.labelWidth))
 provide("tmFormLabelAlign",computed(()=>props.labelAlign))
 provide("tmFormLayout",computed(()=>props.layout))
 provide("tmFormBorder",computed(()=>props.border))
+provide("tmFormTransprent",computed(()=>props.transprent))
 let timid = 56321326898746;
 function reset(){
     formFunCallBack.value = ""

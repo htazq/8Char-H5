@@ -29,7 +29,7 @@
 			>
 				<view class="statusHeight" :style="{height:statusBarHeight+'px'}"></view>
 				
-				<view class="flex flex-row flex-1 flex-row flex-row-center-betweent ">
+				<view class="flex flex-row flex-1 flex-row flex-row-center-between ">
 					<view class="flex-row flex flex-row-center-start " :style="{width:_leftWidth+'rpx'}">
 						<!-- #ifndef MP-ALIPAY -->
 						<tm-icon :unit="props.unit" :font-size="props.iconFontSize" _class="pointer pb-12 pt-12 px-24" :color="_homeColor" @click="goback" v-if="_pages>1&&props.hideBack" name="tmicon-angle-left"></tm-icon>

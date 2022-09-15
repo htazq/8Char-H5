@@ -570,7 +570,7 @@ export function toast(word:string,mask:boolean=true,icon:any='none'){
  * 请一定要在onMounted或者onLoad中调用，否则不准确在h5端。
  * @return {height,width,top,isCustomHeader}
  */
-export function getWindow(){
+export function getWindow():{width:number,height:number,top:number,bottom:number,isCustomHeader:Boolean,sysinfo:UniApp.GetSystemInfoResult}{
 	// let getsysinfoSync = getCookie("tmui_sysinfo")
 	// if(getsysinfoSync){
 	// 	return getsysinfoSync
@@ -580,6 +580,8 @@ export function getWindow(){
 	let height = sysinfo.windowHeight;
 	let nowPage = getCurrentPages().pop()
 	let isCustomHeader = false;
+	let pages = uni.$tm?.pages??[]
+	let bottom = sysinfo.safeAreaInsets?.bottom??0;
 	for(let i=0;i<uni.$tm.pages.length;i++){
 		if(nowPage?.route==uni.$tm.pages[i].path&&uni.$tm.pages[i].custom=='custom'){
 			isCustomHeader = true;
@@ -587,37 +589,23 @@ export function getWindow(){
 		}
 	}
 	// #ifdef H5
+	// 兼容说明：h5端第一次获取的高度和第二次获取的高度是有差异 的。
 	if (isCustomHeader) {
 		height  = sysinfo.windowHeight+sysinfo.windowTop
+		
 	}else{
+		top = 44
 		if(sysinfo.windowTop>0){
 			height  = sysinfo.windowHeight;
 		}else{
-			height  = sysinfo.windowHeight+44;
+			height  = sysinfo.windowHeight+sysinfo.windowTop
 		}
 	}
+	
 	// #endif
-
-	// #ifdef APP-NVUE 
-	if(!isCustomHeader){
-		if(sysinfo.osName=="android"){
-			height = (sysinfo.safeArea?.height??sysinfo.windowHeight) - 44 - (sysinfo.safeAreaInsets?.bottom??0)
-		}else{
-			height = (sysinfo.safeArea?.height??sysinfo.windowHeight) - 44
-		}
-	}else{
-		height = (sysinfo.safeArea?.height??sysinfo.windowHeight) + (sysinfo?.statusBarHeight??0) + (sysinfo.safeAreaInsets?.bottom??0)
-	}
-	// #endif
-	// #ifdef APP-VUE 
-	if(!isCustomHeader){
-		height = (sysinfo.safeArea?.height??sysinfo.windowHeight) - 44
-	}else{
-		height = (sysinfo.safeArea?.height??sysinfo.windowHeight) + (sysinfo?.statusBarHeight??0) + (sysinfo.safeAreaInsets?.bottom??0)
-	}
-	// #endif
-	let reulst = {height:height,width:sysinfo.windowWidth,top:top,isCustomHeader:isCustomHeader,sysinfo:sysinfo};
-	// setCookie("tmui_sysinfo",reulst)
+	
+	let reulst = {bottom:bottom,height:height,width:sysinfo.windowWidth,top:top,isCustomHeader:isCustomHeader,statusBarHeight:sysinfo.statusBarHeight,sysinfo:sysinfo};
+	
 	return reulst;
 }
 type openUrlType = "navigate"|"redirect"|"reLaunch"|"switchTab"|"navigateBack"
@@ -635,11 +623,39 @@ export function routerTo(url:string,type:openUrlType='navigate'){
 		reLaunch:"reLaunch",
 		navigateBack:"navigateBack",
 	}
-	let fun= <openUrlTypeFun>funType[type];
-	uni[fun]({
-		url:url,
-		fail(result) {
-			console.error(result)
-		},
-	})
+	let fun= funType[type];
+	if(fun=='navigateBack'){
+		uni.navigateBack({fail(error) {
+			console.error(error)
+		}})
+	}else if(fun=='reLaunch'){
+		uni.reLaunch({
+			url:url,
+			fail(error) {
+				console.error(error)
+			}
+		})
+	}else if(fun=='switchTab'){
+		uni.switchTab({
+			url:url,
+			fail(error) {
+				console.error(error)
+			}
+		})
+	}else if(fun=='redirectTo'){
+		uni.redirectTo({
+			url:url,
+			fail(error) {
+				console.error(error)
+			}
+		})
+	}else if(fun=='navigateTo'){
+		uni.navigateTo({
+			url:url,
+			fail(error) {
+				console.error(error)
+			}
+		})
+	}
+	
 }

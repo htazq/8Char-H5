@@ -17,11 +17,11 @@
 		<view :blurEffect="_blurEffect"  @click.stop="toogleOpen(false)" ref="menuEl" :class="[_showMenu?'menuOn':'']"
 			class="fixed l-0 t-0 menu"
 			:style="{ width: appConfig.width + 'px', height: appConfig.height + 'px',background:'rgba(0,0,0,0.6)',backdropFilter: 'blur(3px)'}">
-			<view :style="{ width: appConfig.width*0.7 + 'px', height: appConfig.height + 'px',boxShadow:'3px 0 16px rgba(0,0,0,0.3)'}" >
+			<view v-if="_showMenu" :style="{ width: appConfig.width*0.7 + 'px', height: appConfig.height + 'px',boxShadow:'3px 0 16px rgba(0,0,0,0.3)'}" >
 				<scroll-view @click.stop="" :scroll-y="true"
 					:style="{ width:appConfig.width*0.7 + 'px', height: appConfig.height + 'px'}">
 					<slot name="menu"
-						:sys="{width:appConfig.width*0.7,height:appConfig.height,statusBarHeight:sysinfo.statusBarHeight}"></slot>
+						:sys="{width:appConfig.width*0.7,height:appConfig.height}"></slot>
 				</scroll-view>
 			</view>
 		</view>
@@ -42,7 +42,7 @@
 		onBeforeMount,
 		ComponentInternalInstance,
 		nextTick,
-		onMounted
+		onMounted,Proptype
 	} from 'vue';
 	import {
 		useTmpiniaStore
@@ -52,6 +52,7 @@
 		cssstyle,
 		tmVuetify
 	} from '../../tool/lib/interface';
+	import {getWindow} from '../../tool/function/util';
 	import {
 		custom_props,
 		computedTheme,
@@ -78,12 +79,7 @@
 	const proxy = getCurrentInstance()?.proxy ?? null;
 	//路由守卫---------------------------------
 	let pages = getCurrentPages().pop()
-	nextTick(() => {
-		useTmRouterBefore({
-			path: pages?.route ?? "",
-			context: proxy
-		})
-	})
+
 	onLoad((opts: any) => {
 		useTmRouterAfter({
 			path: pages?.route ?? "",
@@ -119,7 +115,7 @@
 			default: false
 		},
 		navbar: {
-			type: Object,
+			type: Object as Proptype<{background:string,fontColor:'#ffffff'|'#000000'}>,
 			default: () => {
 				return {
 					background: '#ffffff',
@@ -143,26 +139,29 @@
 	const isDark = computed(() => computedDark(props, tmcfg.value));
 	//计算主题
 	const tmcomputed = computed < cssstyle > (() => computedTheme(props, isDark.value, tmcfg.value));
-	//返回应用背景和文件色值。
 	const _showMenu = ref(props.showMenu)
-
-	const sysinfo: UniApp.GetSystemInfoResult = uni.getSystemInfoSync()
+	const sysinfo = getWindow()
+	const sysinfoRef = ref(sysinfo)
+	// 向所有子组件传递本次获取的系统信息，以减少频繁的请求.
+	provide("tmuiSysInfo",computed(()=>sysinfoRef.value))
+	// #ifdef H5
+	window.addEventListener("resize",()=>{
+		
+		throttle(()=>{
+			sysinfoRef.value = getWindow()
+			console.log(sysinfoRef.value)
+		})
+	})
+	// #endif
 	// 视察的宽。
-	const view_width = ref(sysinfo.windowWidth);
+	const view_width = ref(sysinfo.width);
 	//视窗的高度。
-	let view_height = ref(sysinfo.windowHeight);
-
-	let nowPage = getCurrentPages().pop()
-	// 本页面是否定义了头部的原生导航
-	let isCustomHeader = false;
-	for (let i = 0; i < uni.$tm.pages.length; i++) {
-		if (nowPage?.route == uni.$tm.pages[i].path && uni.$tm.pages[i].custom == 'custom') {
-			isCustomHeader = true;
-			break;
-		}
-	}
+	let view_height = ref(sysinfo.height);
+	let timids = uni.$tm.u.getUid(1);
+	let flag = false
 	//本页面是否是tabar切换页面。
 	let isTabbarPage = false;
+	let nowPage = getCurrentPages().pop();
 	let barLit = uni.$tm.tabBar?.list ?? []
 	for (let i = 0; i < barLit.length; i++) {
 		if (nowPage?.route == barLit[i].pagePath) {
@@ -170,34 +169,6 @@
 			break;
 		}
 	}
-	// #ifdef H5
-	if (isCustomHeader) {
-		view_height.value = sysinfo.windowHeight + sysinfo.windowTop
-	}
-	// #endif
-
-	// #ifdef APP-NVUE 
-	if (!isCustomHeader) {
-		if (sysinfo.osName == "android") {
-			view_height.value = (sysinfo.safeArea?.height ?? sysinfo.windowHeight) - 44 - (sysinfo.safeAreaInsets
-				?.bottom ?? 0)
-		} else {
-			view_height.value = (sysinfo.safeArea?.height ?? sysinfo.windowHeight) - 44
-		}
-	} else {
-		view_height.value = (sysinfo.safeArea?.height ?? sysinfo.windowHeight) + (sysinfo?.statusBarHeight ?? 0) + (sysinfo
-			.safeAreaInsets?.bottom ?? 0)
-	}
-	// #endif
-	// #ifdef APP-VUE 
-	if (!isCustomHeader) {
-		view_height.value = (sysinfo.safeArea?.height ?? sysinfo.windowHeight) - 44
-	} else {
-		view_height.value = (sysinfo.safeArea?.height ?? sysinfo.windowHeight) + (sysinfo?.statusBarHeight ?? 0) + (sysinfo
-			.safeAreaInsets?.bottom ?? 0)
-	}
-	// #endif
-
 
 	const _blurEffect = computed(() => {
 		if (props.blur === true && isDark.value) return 'dark';
@@ -214,7 +185,31 @@
 		dark: isDark.value
 	});
 
+	function throttle(func: Function, wait = 100, immediate = false) {
+		if (immediate) {
+			if (!flag) {
+				flag = true;
+				// 如果是立即执行，则在wait毫秒内开始时执行
+				typeof func === 'function' && func();
+				timids = setTimeout(() => {
+					flag = false;
+				}, wait);
+			}
+		} else {
+			if (!flag) {
+				flag = true
+				// 如果是非立即执行，则在wait毫秒内的结束处执行
+				timids = setTimeout(() => {
+					flag = false
+					typeof func === 'function' && func();
+				}, wait);
+			}
+
+		}
+	};
+
 	function setAppStyle() {
+		
 		if (isDark.value) {
 			appConfig.value.theme = props.darkColor;
 		} else {
@@ -238,28 +233,37 @@
 				webviewBGTransparent: true
 			})
 		}
-		// app安卓下设置底部虚拟区域的颜色。
-		if (sysinfo.osName == 'android') {
-			var Color: any = plus.android.importClass("android.graphics.Color");
-			plus.android.importClass("android.view.Window");
-			var mainActivity: any = plus.android.runtimeMainActivity();
-			var window_android = mainActivity?.getWindow();
-
-			if (appConfig.value.dark) {
-				window_android.setNavigationBarColor(Color.BLACK);
-			} else {
-				window_android.setNavigationBarColor(Color.WHITE);
-			}
-		}
+		// app安卓下设置底部虚拟区域的颜色。因部分机型兼容问题导致白屏，此代码暂时注释，待uni官方修复。
+		// if (sysinfo.osName == 'android') {
+		// 	var Color: any = plus.android.importClass("android.graphics.Color");
+		// 	plus.android.importClass("android.view.Window");
+		// 	var mainActivity: any = plus.android.runtimeMainActivity();
+		// 	var window_android = mainActivity?.getWindow();
+		// 	console.log(Color,mainActivity,window_android)
+		// 	if(Color&&mainActivity&&window_android){
+		// 		if (appConfig.value.dark) {
+		// 			window_android.setNavigationBarColor(Color.BLACK);
+		// 		} else {
+		// 			window_android.setNavigationBarColor(Color.WHITE);
+		// 		}
+		// 	}
+			
+		// }
 
 		// #endif
+		
+		
 		// #ifdef H5
 		document.body.style.background = appConfig.value.theme || "";
+		localStorage.setItem("tmuiNavStyle",JSON.stringify({
+			navbarBackground:isDark.value?appConfig.value.theme:props.navbar.background,
+			navbarFontColor:isDark.value?'#ffffff':props.navbar.fontColor
+		}))
 		// #endif
 
 		if (isDark.value) {
 			// #ifndef MP-ALIPAY
-			if (!isCustomHeader) {
+			if (!sysinfo.isCustomHeader) {
 				uni.setNavigationBarColor({
 					backgroundColor: appConfig.value.theme,
 					frontColor: '#ffffff'
@@ -277,15 +281,13 @@
 			}
 
 		} else {
-
 			// #ifndef MP-ALIPAY
-			if (!isCustomHeader) {
+			if (!sysinfo.isCustomHeader) {
 				uni.setNavigationBarColor({
 					backgroundColor: props.navbar.background,
 					frontColor: props.navbar.fontColor
 				})
 			}
-
 			// #endif
 			if (isTabbarPage) {
 				uni.setTabBarStyle({
@@ -297,7 +299,6 @@
 			}
 
 		}
-
 		isSetThemeOk.value = true;
 	}
 

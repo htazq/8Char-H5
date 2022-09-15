@@ -1,6 +1,6 @@
 <template>
 
-    <tm-drawer ref="drawer" :round="props.round" :height="dHeight" @update:show="_show = $event" :show="_show" @close="close" @open="open"
+    <tm-drawer :disabbleScroll="true" ref="drawer" :round="props.round" :height="dHeight" @close="close" @open="open"
         :hideHeader="true">
         <view class="mx-16 mt-24">
             <tm-calendar-view  :hideButton="props.hideButton" :hideTool="props.hideTool" @update:model-value="_value = $event" :model-value="_value"
@@ -17,7 +17,7 @@
  * 日历(弹层式)
  * @description 用法见：tm-calendar-view组件，与其一致的用法。
  */
-import { computed, ref, watch, PropType, Ref, getCurrentInstance, nextTick, watchEffect, ComponentInternalInstance } from "vue"
+import { inject,computed,ref, watch, PropType, Ref, getCurrentInstance, nextTick, watchEffect, ComponentInternalInstance, onMounted } from "vue"
 import { custom_props, computedTheme, computedClass, computedStyle, computedDark } from '../../tool/lib/minxs';
 import tmCalendarView from "../tm-calendar-view/tm-calendar-view.vue";
 import tmDrawer from "../tm-drawer/tm-drawer.vue";
@@ -132,47 +132,48 @@ const props = defineProps({
     },
 
 })
-
+const sysinfo = inject("tmuiSysInfo",computed(()=>{
+		return {bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null}
+	}))
 const _show = ref(props.show)
 const isConfirm = ref(false)//是否点了确认按钮。
 const _value = ref(props.defaultValue)
-const _strvalue = ref("")
+const _strvalue = ref(props.modelStr)
 const _modelType = computed(() => props.model)
 function close() {
     if (!isConfirm.value) {
         emits("cancel")
-        //取消了，但没点确认，则要恢复默认值。
-        // _value.value = [];
-        // nextTick(()=>{
-        //     _value.value = props.modelValue.length==0?props.defaultValue:props.modelValue;
-        // })
-
     }
     emits("close")
     emits("update:show", false)
-    nextTick(() => {
-        //恢复选中之前。如果未点确认按钮，而是直接关闭的话。
-		// 截止3.0.0-alpha-3041120220520001版本后，所有平台都无法获取组件的ref方法了。
-		// console.log(proxy.$refs.calendarView)
-        // if (!proxy.$refs.calendarView?.setDefault) return;
-        // if (props.modelValue.length == 0) {
-        //     // 截止2022-5-13在clinvue uniapp 在h5平台此处有bug，其它平台正常
-        //     proxy.$refs.calendarView?.setDefault(props.defaultValue)
-        // } else {
-        //     proxy.$refs.calendarView?.setDefault(props.modelValue)
-        // }
-    })
     isConfirm.value = false;
+    _show.value = false;
 }
 function open() {
     emits("open")
+    emits("update:show", true)
+    _show.value = true;
 }
 watchEffect(() => {
     emits("update:modelStr", _strvalue.value)
+	emits("update:modelValue",_value.value)
 })
 
-watchEffect(() => {
-    _show.value = props.show;
+watch(()=>props.show,() => {
+    if(_show.value == props.show) return;
+    if(drawer.value){
+        if(props.show){
+            drawer.value?.open()
+        }else{
+            
+            drawer.value?.close()
+        }
+    }
+})
+onMounted(()=>{
+    if(props.show&&drawer.value){
+        drawer.value?.open()
+    }
 })
 watch(() => props.modelValue, () => {
     _value.value = props.modelValue
@@ -185,28 +186,22 @@ function onclick(e: Array<string | number>) {
     emits("click", e)
 }
 function confirm(e: Array<string | number>) {
-    emits("confirm", e)
-    emits("update:modelValue", e)
-    isConfirm.value = true;
-    drawer.value?.close();
+	emits("confirm",e)
+    drawer.value?.close()
 }
-let sysinfo = uni.getSystemInfoSync()
-let win_bottom = sysinfo?.safeAreaInsets?.bottom??0
 
-// #ifndef APP || MP-WEIXIN
-win_bottom = sysinfo?.safeArea?.bottom??0
-win_bottom = win_bottom>sysinfo.windowHeight?0:win_bottom
-// #endif
-
-if(props.hideButton){
-    win_bottom -=80;
-}
+let win_bottom = computed(()=>{
+    if(props.hideButton){
+        return sysinfo.value.bottom - 80;
+    }
+    return sysinfo.value.bottom
+})
 const dHeight = computed(() => {
-    if (_modelType.value == 'day') return 900+win_bottom
-    if (_modelType.value == 'rang') return 900+win_bottom
-    if (_modelType.value == 'week') return 740+win_bottom
-    if (_modelType.value == 'month') return 720+win_bottom
-    if (_modelType.value == 'year') return 620+win_bottom
-    return 600+win_bottom
+    if (_modelType.value == 'day') return 900+win_bottom.value
+    if (_modelType.value == 'rang') return 900+win_bottom.value
+    if (_modelType.value == 'week') return 740+win_bottom.value
+    if (_modelType.value == 'month') return 720+win_bottom.value
+    if (_modelType.value == 'year') return 620+win_bottom.value
+    return 600+win_bottom.value
 })
 </script>

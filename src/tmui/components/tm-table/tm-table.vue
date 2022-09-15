@@ -5,7 +5,7 @@
             @mouseup="scrollDong = 't'" :scroll-left="headerLeft"
             :style="{ width: `${defaultProps.width}rpx`, height: `${defaultProps.headerHeight}rpx` }">
             <!-- #ifndef APP-NVUE -->
-            <view class="flex-1 flex-row flex-nowrap">
+            <view class="flex-1 flex flex-row flex-nowrap">
                 <tm-sheet  :border="_showBottomBorder?1:0" border-direction="bottom" :color="item.bgColor" :text="item.light" 
 					:_class="'flex flex-col ' + item.align"
                     :height="defaultProps.headerHeight-6" 
@@ -64,7 +64,7 @@
             @mouseup="touchStartScroll(0)" :scroll-x="true" :scroll-y="true" :scroll-left="tableLeft[0]"
             :style="[defaultProps.height ? { height: `${defaultProps.height}rpx` } : '', { width: `${defaultProps.width}rpx` }]">
 
-            <view class="flex flex-row flex-nowrap" v-for="(item2, index2) in _tabel" :key="index2" :margin="[0, 0]">
+            <view class="flex flex-row flex-nowrap" style="white-space: nowrap;" v-for="(item2, index2) in _tabel" :key="index2" :margin="[0, 0]">
                 <tm-sheet  
 				:border="_showBottomBorder?1:0" 
 				border-direction="bottom" v-for="(item, index) in item2.data" 
@@ -72,6 +72,7 @@
 				:margin="[0, 0]"
                 :color="item.color" 
 				:text="item.light"
+				style="flex-shrink: 0;"
                     :_class="'flex flex-row ' + item2.align" :height="defaultProps.cellHeight-6" :width="item.width-10"
                     :padding="[10, 6]">
                    <tm-text v-if="item.type=='text'" :font-size="24" :label="item.text"></tm-text>
@@ -360,5 +361,10 @@ function rowClick(rowIndex:number,colIndex:number){
 }
 
 </script>
-<style>
+<style scoped>
+	/* #ifndef APP-NVUE  */
+	uview{
+		box-sizing: border-box;
+	}
+	/* #endif */
 </style>

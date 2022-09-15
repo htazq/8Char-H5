@@ -1,5 +1,5 @@
 <template>
-    <tm-drawer :round="props.round" ref="drawer" 
+    <tm-drawer  :disabbleScroll="true" :round="props.round" ref="drawer" 
 	:height="820" :closable="true" :overlayClick="aniover" v-if="showCity" @open="drawerOpen" @cancel="cancel" @ok="confirm"
         :show="showCity" @update:show="closeDrawer" title="请选择地区" ok-text="确认">
         <tm-picker-view :height="590" @end="aniover = true" @start="aniover = false" :value="_colIndex"
@@ -23,7 +23,7 @@
  * @description 这是弹出式，滑动地址选择器，另还一个按步选择地区的组件，见：tm-city-cascader
  * @example <tm-city-picker v-model:show="show" v-model="status" v-model:model-str="statusw"></tm-city-picker>
  */
-import { PropType, Ref, ref, watchEffect,getCurrentInstance } from "vue"
+import { PropType,inject, Ref, ref, watchEffect,getCurrentInstance } from "vue"
 import { custom_props } from "../../tool/lib/minxs";
 import tmDrawer from '../tm-drawer/tm-drawer.vue';
 import { childrenData } from "./interface"
@@ -104,8 +104,8 @@ const _colIndex: Ref<Array<number>> = ref([])
 const _data = ref(chiliFormatCity_area())
 const _colStr = ref('')
 const aniover = ref(true)
-let win_bottom = uni.getSystemInfoSync()?.safeArea?.bottom??0
-win_bottom = win_bottom>uni.getSystemInfoSync().windowHeight?0:win_bottom
+const sysinfo = inject("tmuiSysInfo",{bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null})
+let win_bottom = sysinfo.bottom
 
 watchEffect(() => {
     showCity.value = props.show
