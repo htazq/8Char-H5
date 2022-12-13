@@ -2,35 +2,56 @@
 
 	<tm-translate :width="img_width + (props.padding[0] * 2) + props.unit" v-if="!isRmove" @end="aniEnd" ref="aniplay" :autoPlay="false" name="zoom"
 		reverse>
+		<view class="absolute" style="transform:translateX(1200px);opacity: 0;">
+			<image v-if="loading" :src="img_src" style="width: 10px;height: 10px;opacity: 0;" @load="imageLoad"
+					@error="imageError" mode="scaleToFill"></image>
+		</view>
 		<tm-sheet :color="props.color" :transprent="props.transprent" :margin="props.margin" :round="props.round"
 			:border="props.border" :padding="[props.padding[0],0]" :class="['round-' + props.round]" :width="img_width - (props.padding[0] * 2)"
 			:unit="props.unit">
-			<view :class="[`pb-${props.padding[1]}`]">
-				<image v-if="loading" :src="img_src" style="width: 10px;height: 10px;opacity: 0;transform:translateX(1200px)" @load="imageLoad"
-					@error="imageError" mode="scaleToFill"></image>
+			<view :class="[`pb-${props.padding[1]}`,'flex flex-col flex-col-center-center']">
+				
 				<image :show-menu-by-longpress="props.showMenuByLongPress" @click="imageClick" :class="['round-' + props.round]" v-if="!loading && !error" :src="img_src"
 					:style="[{ width: img_width + props.unit, height: img_height + props.unit }]" :mode="props.model"></image>
-				<view v-if="loading && !error" :style="[{ width: img_width + props.unit, height: img_height + props.unit }]"
+				<view v-if="loading && !error" :style="[{ width: img_width + props.unit, height: (img_height+10) + props.unit }]"
 					class="flex flex-center opacity-3">
 					<tm-icon v-if="props.showLoad" :font-size="26" spin name="tmicon-loading"></tm-icon>
 				</view>
+				
 				<view v-if="!loading && error" :style="[{ width: img_width + props.unit, height: img_height + props.unit }]"
 					class="flex flex-col flex-center opacity-5">
-					<tm-icon name="tmicon-exclamation-circle"></tm-icon>
-					<tm-text _class="pt-10" :font-size="26" :label="props.errorLabel"></tm-text>
+					<slot name="error">
+						<view  >
+							<tm-icon name="tmicon-exclamation-circle"></tm-icon>
+							<tm-text _class="pt-10" :font-size="26" :label="props.errorLabel"></tm-text>
+						</view>
+					</slot>
 				</view>
+				
 				<!-- extra -->
-				<view @click.stop="imageClick" v-if="props.extra" :class="[
-					props.extraPosition == 'in' ? 'absolute l-0 b-0 zIndex-5' : '',
+				<view :eventPenetrationEnabled="true" v-if="props.extra"
+				:class="[
+					props.extraPosition == 'in' ? 'absolute l-0 b-0 zIndex-5 relative' : '',
 					'flex flex-col flex-col-bottom-start'
-				]" :style="[
+				]"
+				:style="[
 					props.extra && props.extraPosition == 'in' ? { height: img_height + props.unit, width: img_width + props.unit } : '',
 					props.extra && props.extraPosition == 'out' ? { width: img_width + props.unit } : '',
-				]">
-					<slot name="extra"></slot>
+				]"
+				>
+					<view @click.stop="imageClick"  
+					  :class="[
+					  	'flex flex-col flex-col-bottom-start'
+					  ]"
+					  :style="[
+						props.extra && props.extraPosition == 'in' ? { height: img_height + props.unit, width: img_width + props.unit } : '',
+						props.extra && props.extraPosition == 'out' ? { width: img_width + props.unit } : '',
+					]">
+						<slot name="extra"></slot>
+					</view>
 				</view>
 				<!-- delete 展示删除按钮。 -->
-				<view v-if="props.delete" class="absolute r-10 t-10 flex flex-col flex-col-center-end zIndex-10"
+				<view v-if="props.delete" class="absolute r-4 t-4 flex flex-col flex-col-center-end zIndex-10"
 					:style="[props.delete ? { width: img_width + props.unit } : '',]">
 					<tm-icon @click="del" color="red" name="tmicon-times-circle-fill"></tm-icon>
 				</view>

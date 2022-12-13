@@ -5,13 +5,13 @@
 	}]">
 		<!-- #ifndef APP-NVUE -->
 		<text @click="clickhandle" @longpress="emits('longpress', $event)"
-			:class="[spinComputed ? 'spin' : '', 'text-size-n d-inline-block', 'tmicon ', prefx, iconComputed, customClass]"
+			:class="[spinComputed ? 'spin' : '', 'text-size-n d-inline-block', prefx, iconComputed, customClass]"
 			:style="[fontSizeComputed, { color: textColor }, customCSSStyle]" v-if="!isImg"></text>
 		<!-- #endif  -->
 		<!-- #ifdef APP-NVUE-->
 		<text :render-whole="true" ref="icon" @click="clickhandle" @longpress="emits('longpress', $event)"
-			:class="[spinComputed ? 'spin' : '', 'text-size-n d-inline-block ', 'tmicon', customClass]"
-			:style="[{ fontFamily: 'tmicon', color: textColor }, fontSizeComputed, customCSSStyle]" v-if="!isImg">
+			:class="[spinComputed ? 'spin' : '', 'text-size-n d-inline-block ', prefx, customClass]"
+			:style="[{ fontFamily: prefx, color: textColor }, fontSizeComputed, customCSSStyle]" v-if="!isImg">
 			{{ iconComputed }}
 		</text>
 		<!-- #endif  -->
@@ -55,7 +55,7 @@ const props = defineProps({
 	},
 	spin: {
 		type: [Boolean],
-		defalut: true
+		default: false
 	},
 	unit: {
 		type: String,
@@ -108,7 +108,11 @@ const fontSizeComputed = computed(() => {
 		lineHeight:props.lineHeight>-1?props.lineHeight + props.unit:(props.fontSize || 30) + props.unit
 		};
 	// #endif
-	return { fontSize: (props.fontSize || 30) + props.unit,lineHeight:props.lineHeight>-1?props.lineHeight + props.unit:(props.fontSize || 30) + props.unit };
+	let strc = { fontSize: (props.fontSize || 30) + props.unit, lineHeight:props.lineHeight>-1?props.lineHeight + props.unit:(props.fontSize || 30) + props.unit };
+	if(props.lineHeight==0){
+		delete strc.lineHeight
+	}
+	return strc;
 });
 //当前图标是否是图片。
 const isImg = computed(() => {
@@ -126,25 +130,31 @@ const isImg = computed(() => {
 });
 //图标前缀
 const prefx = computed(() => {
-	let prefix = props.name.split('-')[0];
+    const index = props.name.indexOf('-icon-');
+	if(index > 0){
+		return props.name.substring(0, index + 5);
+	}
+	let prefix = props.name.split('-')?.[0];
 	return prefix;
 });
 //图标名称。
 const iconComputed = computed(() => {
 	if(isImg.value) return props.name
 	// #ifdef APP-NVUE
-	let name = props.name.substr(props.name.indexOf('-') + 1)
+	let name = props.name.substr(prefx.value.length + 1)
+	
 	let index = uni.$tm.tmicon.findIndex(el=>el.font==prefx.value)
-	let itemIcon = uni.$tm.tmicon[index].fontJson.find((item, index) => {
+	let itemIcon = uni.$tm.tmicon[index]?.fontJson.find((item, index) => {
 		return item.font_class == name;
 	});
-	if (itemIcon) {
-		return JSON.parse('"\\u' + String(itemIcon.unicode) + '"');
+	try{
+		return JSON.parse('"\\u' + String(itemIcon?.unicode ?? name) + '"');
+	}catch(e){
+		return props.name;
 	}
 	// #endif
 	return props.name;
 });
-
 
 //是否使图标旋转。
 const spinComputed = computed(() => props.spin);
@@ -162,18 +172,18 @@ function spinNvueAni(jiaodu=360) {
 			transform: `rotate(${jiaodu}deg)`,
 			transformOrigin: 'center center'
 		},
-		duration: 1200, //ms
+		duration: 2000, //ms
 		timingFunction: 'linear',
 		delay: 0 //ms
 	},()=>{
 		nextTick(function () {
 			animation.transition(iconEl, {
 				styles: {
-					transform: `rotate(${0}deg)`,
+					transform: `rotate(0deg)`,
 					transformOrigin: 'center center'
 				},
 				duration: 0, //ms
-				timingFunction: 'linear',
+				timingFunction: 'ease',
 				delay: 0 //ms
 			},()=>{
 				spinNvueAni()

@@ -67,7 +67,7 @@ const props = defineProps({
      * rang :按日期范围选择模式。
      */
     model: {
-        type: String,
+        type: String as PropType<'quarter'|'day'|'month'|'year'|'rang'|'week'>,
         default: 'day'
     },
     color: {
@@ -161,6 +161,7 @@ watchEffect(() => {
 
 watch(()=>props.show,() => {
     if(_show.value == props.show) return;
+	
     if(drawer.value){
         if(props.show){
             drawer.value?.open()
@@ -201,6 +202,7 @@ const dHeight = computed(() => {
     if (_modelType.value == 'rang') return 900+win_bottom.value
     if (_modelType.value == 'week') return 740+win_bottom.value
     if (_modelType.value == 'month') return 720+win_bottom.value
+    if (_modelType.value == 'quarter') return 480+win_bottom.value
     if (_modelType.value == 'year') return 620+win_bottom.value
     return 600+win_bottom.value
 })

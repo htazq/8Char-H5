@@ -1,6 +1,6 @@
 <template>
     <view class="flex flex-row" >
-		<pickerPanelVue :followTheme="props.followTheme" @end="emits('end')" @start="emits('start')" :dataKey="props.dataKey" @change="pickerChange($event,index)" :col="_colIndex[index]" v-for="(item,index) in _data" :data="item" :key="index" :height="props.height" class="flex-1"></pickerPanelVue>
+		<pickerPanelVue :immediateChange="props.immediateChange" :followTheme="props.followTheme" @end="emits('end')" @start="emits('start')" :dataKey="props.dataKey" @change="pickerChange($event,index)" :col="_colIndex[index]" v-for="(item,index) in _data" :data="item" :key="index" :height="props.height" class="flex-1"></pickerPanelVue>
     </view>
 </template>
 <script lang="ts" setup>
@@ -44,7 +44,7 @@ const props = defineProps({
     //默认选中的索引值。
 	defaultValue:{
 		type:Array as PropType<Array<number>>,
-		default:()=>[0]
+		default:()=>[]
 	},
     columns:{
         type:Array as PropType<Array<columnsItem>>,
@@ -62,6 +62,10 @@ const props = defineProps({
 	beforeChange:{
 		type:[Boolean,Function],
 		default:()=>false
+	},
+	immediateChange:{
+		type:Boolean,
+		default:false
 	}
 })
 const _colIndex = ref([...props.defaultValue]);

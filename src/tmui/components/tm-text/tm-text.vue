@@ -1,11 +1,12 @@
 <template>
-  <view :render-whole="true" class="flex text-view nvue" style="line-height: 0">
+  <view :render-whole="true" class="flex text-view nv" :class="[_parentClass]" >
     <!-- #ifdef APP-PLUS-NVUE -->
     <text :render-whole="true" @click="emits('click', $event)" :selectable="selectable" :user-select="selectable"
       :class="[_fontSize ? '' : 'text-size-m', customClass]" :style="[
+		  props.lineHeight=='auto'?{lineHeight:(_fontSize ? _fontSize * 1.3 : 42) + props.unit}:{},
+		  props.lineHeight==0?{}:{lineHeight: props.lineHeight + props.unit},
         {
-          lineHeight:
-            (_fontSize ? _fontSize * 1.3 : 42) + props.unit, color: textColor
+           color: textColor
         },
         _fontSize ? { fontSize: _fontSize + props.unit } : '',
         customCSSStyle,
@@ -14,8 +15,10 @@
     <!-- #ifndef APP-PLUS-NVUE -->
     <view><text @click="emits('click', $event)" :selectable="selectable" :user-select="selectable"
         :class="[fontSize ? '' : 'text-size-m', customClass]" :style="[
+			props.lineHeight=='auto'?{lineHeight:(_fontSize ? _fontSize * 1.3 : 42) + props.unit}:{},
+			props.lineHeight==0?{}:{lineHeight: props.lineHeight + props.unit},
           {
-            lineHeight: (_fontSize ? _fontSize * 1.3 : 42) + props.unit, color: textColor
+           color: textColor
           },
           _fontSize ? { fontSize: _fontSize + props.unit } : '',
           customCSSStyle,
@@ -59,10 +62,18 @@ const props = defineProps({
   unit: {
     type: String,
     default: 'rpx'
+  },
+  parentClass:{
+	  type: String,
+	  default: ''
+  },
+  lineHeight:{
+	  type: [Number,String],
+	  default: 'auto'
   }
 });
 const emits = defineEmits(["click"]);
-
+const _parentClass = computed(()=>props.parentClass)
 // 设置响应式全局组件库配置表。
 const tmcfg = computed<tmVuetify>(() => store.tmStore);
 //自定义样式：
@@ -102,6 +113,16 @@ const textColor = computed(() => {
 	/* #ifndef APP-NVUE */
 	.text-view{
 		box-sizing: border-box;
+	}
+	.nv{
+		    display: flex;
+		    flex-shrink: unset;
+		    flex-grow: 0;
+		    flex-basis: auto;
+		    align-items: stretch;
+		    align-content: flex-start;
+		    box-sizing: border-box;
+		    flex-direction: column;
 	}
 	/* #endif */
 </style>

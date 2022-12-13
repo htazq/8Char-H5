@@ -1,21 +1,44 @@
 <template>
-    <tm-drawer  :disabbleScroll="true" :round="props.round" ref="drawer" 
-	:height="820" :closable="true" :overlayClick="aniover" v-if="showCity" @open="drawerOpen" @cancel="cancel" @ok="confirm"
-        :show="showCity" @update:show="closeDrawer" title="请选择地区" ok-text="确认">
-        <tm-picker-view :height="590" @end="aniover = true" @start="aniover = false" :value="_colIndex"
-            @update:modelValue="_colIndex = $event" @update:model-str="_colStr = $event" :model-str="_colStr"
-            :default-value="_colIndex" :columns="_data"></tm-picker-view>
-        <tm-button label="确认选择"
-        block
-        :margin="[32,12]"
-        :color="props.color" 
-        :linear="props.linear" 
-        :linear-deep="props.linearDeep" 
-        @click="confirm" 
-        :round="props.btnRound">
-        </tm-button>
-        <view :style="{height: win_bottom+'px'}"></view>
-    </tm-drawer>
+	<tm-drawer
+		:disabbleScroll="true"
+		:round="props.round"
+		ref="drawer"
+		:height="820"
+		:closable="true"
+		:overlayClick="aniover"
+		@open="drawerOpen"
+		@cancel="cancel"
+		@ok="confirm"
+		:show="showCity"
+		@update:show="closeDrawer"
+		title="请选择地区"
+		ok-text="确认"
+	>
+		<tm-picker-view
+			v-if="showCity"
+            ref="picker"
+			:height="590"
+			@end="aniover = true"
+			@start="aniover = false"
+			:value="_colIndex"
+			@update:modelValue="_colIndex = $event"
+			@update:model-str="_colStr = $event"
+			:model-str="_colStr"
+			:default-value="_colIndex"
+			:columns="_data"
+		></tm-picker-view>
+		<tm-button
+			label="确认选择"
+			block
+			:margin="[32, 12]"
+			:color="props.color"
+			:linear="props.linear"
+			:linear-deep="props.linearDeep"
+			@click="confirm"
+			:round="props.btnRound"
+		></tm-button>
+		<view :style="{ height: win_bottom + 'px' }"></view>
+	</tm-drawer>
 </template>
 <script lang="ts" setup>
 /**
@@ -23,7 +46,7 @@
  * @description 这是弹出式，滑动地址选择器，另还一个按步选择地区的组件，见：tm-city-cascader
  * @example <tm-city-picker v-model:show="show" v-model="status" v-model:model-str="statusw"></tm-city-picker>
  */
-import { PropType,inject, Ref, ref, watchEffect,getCurrentInstance } from "vue"
+import { PropType,inject, Ref, ref, watchEffect,getCurrentInstance,watch, toRaw, computed, nextTick, onMounted } from "vue"
 import { custom_props } from "../../tool/lib/minxs";
 import tmDrawer from '../tm-drawer/tm-drawer.vue';
 import { childrenData } from "./interface"
@@ -36,7 +59,8 @@ import tmText from "../tm-text/tm-text.vue";
 import tmButton from "../tm-button/tm-button.vue";
 const proxy = getCurrentInstance()?.proxy??null;
 const drawer = ref<InstanceType<typeof tmDrawer> | null>(null)
- 
+const picker = ref<InstanceType<typeof tmPickerView> | null>(null)
+    
 /**
  * 事件说明：
  * v-model:show 双向绑定显示和隐藏选择器
@@ -78,6 +102,11 @@ const props = defineProps({
         type: String,
         default: "id"
     },
+	// 手动赋值城市数据
+	city:{
+		type:Array as PropType<Array<childrenData>>,
+		default:()=>[]
+	},
     color:{
         type:String,
         default:"primary"
@@ -100,8 +129,10 @@ const props = defineProps({
     }
 })
 const showCity = ref(true)
+const _cityData = computed(()=>props.city)
 const _colIndex: Ref<Array<number>> = ref([])
 const _data = ref(chiliFormatCity_area())
+let tmid = NaN
 const _colStr = ref('')
 const aniover = ref(true)
 const sysinfo = inject("tmuiSysInfo",{bottom:0,height:750,width:uni.upx2px(750),top:0,isCustomHeader:false,sysinfo:null})
@@ -110,22 +141,32 @@ let win_bottom = sysinfo.bottom
 watchEffect(() => {
     showCity.value = props.show
 })
+watch([()=>props.city,()=>props.modelValue],()=>{
+	_data.value = chiliFormatCity_area()
+	clearTimeout(tmid)
+	tmid =setTimeout(function() {
+		getIndexBymodel(_data.value, props.selectedModel, 0, props.modelValue)
+		defaultModerStrGet()
+	}, 500);
+},{deep:true})
 function closeDrawer(e: boolean) {
     showCity.value = e;
     emits('update:show', showCity.value)
-    getIndexBymodel(_data.value, props.selectedModel, 0, props.modelValue)
+    getIndexBymodel(_data.value, "index", 0, toRaw(_colIndex.value))
+	
 }
-getIndexBymodel(_data.value, props.selectedModel, 0, props.modelValue)
-
+// onMounted(()=>defaultModerStrGet())
 function drawerOpen() {
-    // setVal()
+	getIndexBymodel(_data.value, props.selectedModel, 0, props.modelValue)
 }
 //点击确认了地区。
 function confirm() {
     if (!aniover.value) return
     setVal();
-    emits("confirm", props.modelValue)
-    drawer.value?.close();
+    nextTick(()=>{
+        emits("confirm", props.modelValue)
+        drawer.value?.close();
+    })
 }
 function cancel() {
      if (!aniover.value) return
@@ -140,11 +181,23 @@ function setVal() {
     } else {
         val = [..._colIndex.value];
     }
+	
     emits("update:modelValue", val)
     emits("update:modelStr", _colStr.value)
 }
+function defaultModerStrGet(){
+	clearTimeout(tmid)
+	tmid =setTimeout(function() {
+		if(_colIndex.value.length>0){
+			console.log(_colIndex.value,999)
+		    let text = getRouterText(_data.value,0);
+		    emits("update:modelStr",text.join("/"))
+		}
+	}, 200);
+}
 //模拟模型来返回index值
 function getIndexBymodel(vdata:Array<childrenData> = [], model = "name", parentIndex = 0, value:Array<number|string> = []): Array<number|string> {
+	if(value.length==0) return []
     if (model == 'name') {
         let item = vdata.filter(el => value[parentIndex] == el['text'])
         if (item.length == 0) {
@@ -188,7 +241,7 @@ function getIndexBymodel(vdata:Array<childrenData> = [], model = "name", parentI
             }
         }
     }
-
+	
     return _colIndex.value;
 }
 //返回 一个节点从父到子的路径id组。
@@ -206,9 +259,29 @@ function getRouterId(list:Array<childrenData>  = [], parentIndex = 0): Array<str
     }
     return p
 }
+//返回 一个节点从父到子的路径text组。
+function getRouterText(list:Array<childrenData>  = [], parentIndex = 0): Array<string | number> {
+    let p: Array<string | number> = [];
+    for (let i = 0; i < list.length; i++) {
+        if (i == _colIndex.value[parentIndex]) {
+            p.push(list[i]['text'])
+            if (typeof _colIndex.value[parentIndex] != 'undefined') {
+                let c = getRouterText(list[i]['children'], parentIndex + 1)
+                p = [...p, ...c]
+            }
+            break;
+        }
+    }
+    return p
+}
 //格式化数据格式。
 function chiliFormatCity_area() {
     let list: Array<childrenData> = [];
+	
+	if(_cityData.value.length>0){
+		return _cityData.value
+	}
+	
     provinceData.forEach((item: childrenData, index: number) => {
         list.push({
             id: item.value??"",
@@ -237,6 +310,7 @@ function chiliFormatCity_area() {
             })
         })
     })
-    return list;
+    
+	return list;
 }
 </script>

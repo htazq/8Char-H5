@@ -1,26 +1,27 @@
 import { render } from "vue";
-import type {CRenderGraph,CRenderTypes,CRenderGraphsConfig} from "../../../../tmui/components/tm-render/interface"
+import type {CRenderGraph,CRenderTypes,CRenderGraphsConfig} from "../../interface"
 import type { chartBaseConfig,PIE } from "../interface"
 import  { baseConfig } from "./baseConfig"
 import  colors from "./colors"
-import  {deepMerge,measureText} from "./util"
+import  {deepMerge,measureText,isInteger} from "./util"
+import { colortool } from "../../../../tool/theme/colortool"
 export class pieDraw {
 	private render:CRenderTypes|null = null;
-	private config:PIE.basePie
-	private dataArray:Array<PIE.dataItemType>=[]
+	private config:PIE.base
+	private dataArray:Array<CRenderGraph>=[]
 	private GraptOpts:Array<CRenderGraphsConfig> = []
 	private labels:Array<CRenderGraphsConfig> = []
 	private textSize = 11
-	constructor(render:CRenderTypes|null,config:PIE.basePie=baseConfig.pie){
+	constructor(render:CRenderTypes|null,config:PIE.base=baseConfig.pie){
 		this.config = {...baseConfig.pie,...config}
 		this.render = render;
 		this.setConfig(config)
-		// #ifdef NVue
+		// #ifdef NVUE
 		this.textSize = (config.label?.textSize??11) * (render?.ctx?.dpr??1)
 		// #endif
 		return this;
 	}
-	setConfig(config:PIE.basePie){
+	setConfig(config:PIE.base){
 		if(!config) return this;
 		this.config = deepMerge(this.config,config)
 		return this;
@@ -36,8 +37,24 @@ export class pieDraw {
 		return 'right';
 		
 	}
+	private clear(isDel=true){
+		let t = this;
+		if(!t.render) return;
+		const [w,h] = t.render?.area??[0,0];
+		if(isDel){
+			t.render?.delAllGraph();
+		}
+		t.render?.ctx.clearRect(0,0,w,h)
+	}
+	update(arg:{lineWidth:number}){
+		if(!this.render) return;
+		this.clear()
+		//横轴线
+		this.chart()
+	}
 	setData(data:Array<PIE.dataItemType>=[]){
         if(!this.render) return this;
+		this.clear()
 		let that = this;
 		if(data.length==0||!Array.isArray(data)) return this;
 		// 计算数据信息。
@@ -61,6 +78,7 @@ export class pieDraw {
 			let zhanbi = Number(bilv.toFixed(2))*100;
 			el.startzhanbi = -range*90+Number((splidata[index][0]/totalCount).toFixed(2)) * 360*range;
 			el.endzhanbi =-range*90+Number((splidata[index][1]/totalCount).toFixed(2)) * 360*range;
+			// el.endzhanbi = index==0?range*30:el.endzhanbi
 			el._zhanbi = zhanbi
 			let text = (that.config.label?.formart(el)??"").trim()
 			textWidthAr.push(Math.ceil(measureText(text?text:"100%"+"",textSize,that.render?.ctx)))
@@ -72,8 +90,7 @@ export class pieDraw {
 			let startzhanbi = el.startzhanbi??0;
 			let endzhanbi =el.endzhanbi??0;
 			let zhanbi =el._zhanbi??0;
-		
-			let color = colors[index];
+			let color = el.color||colors[index];
 			let rx =  w/2;
 			let ry = rx;
 			let r = w/2-10 - textWidth
@@ -92,6 +109,7 @@ export class pieDraw {
 				_startAngle:startzhanbi,
 				_endzhanbi:endzhanbi,
 				style:{
+		
 					fill:color,
 					scale:[1,1],
 					lineWidth:0,
@@ -118,6 +136,20 @@ export class pieDraw {
 					this.animation('style',{scale:[1.05,1.05]})
 				}
 			}
+			if(this.config.gradien){
+				opts.style = Object.assign(opts.style,'gradientWith')
+				opts.style = Object.assign(opts.style,'gradientStops')
+				opts.style = Object.assign(opts.style,'gradientParams')
+				opts.style = Object.assign(opts.style,'gradientColor')
+				opts.style['gradientWith'] = "fill"
+				opts.style['gradientStops'] = [0,1]
+				opts.style['gradientParams'] = [rx,ry,rx+r,ry+r]
+				let color_v1 = String(opts.style.fill??"#FF0000")
+				let color_v2_obj = colortool.rgbaToHsla(colortool.cssToRgba(color_v1)) ;
+				color_v2_obj.h -=45
+				color_v2_obj.l =30
+				opts.style['gradientColor'] = [color_v1,colortool.rgbaToCss(colortool.hslaToRgba(color_v2_obj))]
+			}
 			let dir = that.getLabelDir(endzhanbi)
 			let x = rx;
 			let y = ry;
@@ -142,7 +174,7 @@ export class pieDraw {
 				y-=-12
 			}
 			let text =String(that.config.label?.formart(el)).trim();
-			let content =  text?text:zhanbi+"%"
+			let content =  text?text:(isInteger(zhanbi)?zhanbi:zhanbi.toFixed(1))+"%"
 			that.labels.push({
 				name:"text",
 				index:50,
@@ -166,16 +198,18 @@ export class pieDraw {
 	}
 	
 	chart(){
-		if(!this.render) return this;
-		let opts = this.dataArray.map(el=>el.opts)
-        if(!opts) return this;
-
-		const graphs = this.render.add(opts)
-        if(Array.isArray(graphs)){
-		    graphs.reverse()
-            graphs.forEach(el=>el.animation('shape',{startAngle:el._startAngle,endAngle:el._endzhanbi},true))
-        }
-		this.render?.launchAnimation()
-		this.render.add(this.labels)
+		return new Promise((res,rej)=>{
+			if(!this.render) return this;
+			let opts = this.dataArray.map(el=>el.opts)
+			if(!opts.length) return this;
+			const graphs = this.render.add(opts)
+			if(Array.isArray(graphs)){
+			    graphs.reverse()
+			    graphs.forEach(el=>el.animation('shape',{startAngle:el._startAngle,endAngle:el._endzhanbi},true))
+			}
+			this.render?.launchAnimation()
+			this.render.add(this.labels)
+			res(true)
+		})
 	}
 }

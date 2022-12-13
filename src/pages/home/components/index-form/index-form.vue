@@ -53,22 +53,6 @@
 			:start="timePick.start"
 			@confirm="SolarConfirm"
 		></tm-time-picker>
-
-		<tm-message ref="msg">
-			<view>
-				<tm-icon
-					:font-size="50"
-					:fontSize="72"
-					_class="pa-10"
-					_style="line-height: normal"
-					color="primary"
-					name="tmicon-loading"
-					spin
-					style="line-height: normal"
-				></tm-icon>
-				<tm-text :font-size="28" _class="pt-30 text-overflow-1 text-weight-b" label="排盘中,请稍后!"></tm-text>
-			</view>
-		</tm-message>
 	</view>
 </template>
 
@@ -88,7 +72,6 @@ const model = ref(0);
 const timestamp = ref(null);
 const datetimeLabel = ref("");
 const lunarLabel = ref(null);
-const msg = ref(null);
 const userStore = useUserStore();
 const baziStore = useBaziStore();
 
@@ -199,14 +182,11 @@ function Sumbit() {
     gender: gender.value == 0 ? 1 : 0,
     sect: sect.value,
   };
-  msg.value.show({model: "load", duration: 2000});
   uni.setStorageSync("info", JSON.stringify(params));
   userStore.set(params);
   baziStore.pull(params);
-  setTimeout(() => {
-    uni.redirectTo({
-      url: "/pages/detail/index",
-    });
-  }, 200);
+  uni.redirectTo({
+    url: "/pages/detail/index",
+  });
 }
 </script>

@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<tm-navbar hideHome title="八字排盘">
+		<tm-navbar hideHome title="四柱易学">
 			<template v-slot:left>
 				<!-- #ifndef H5|APP-NVUE -->
 				<tm-icon

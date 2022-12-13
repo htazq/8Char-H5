@@ -22,7 +22,7 @@
 		<tm-drawer ref="support" v-model:show="supportOption.show" :height="800" hideHeader placement="bottom">
 			<tm-tabs
 				v-model:active-name="supportOption.tabs.current"
-				:activeFontColor="supportOption.tabs.current === 0 ? 'green' : 'primary'"
+				:activeFontColor="TabsCurrentColor"
 				:height="300"
 				:list="supportOption.tabs.list"
 				:width="750"
@@ -56,6 +56,7 @@ for (let index = 0; index < supportList.length; index++) {
   supportOption.tabs.list.push({
     key: parseInt(index),
     title: supportList[index].label,
+    color:supportList[index].color,
     icon: supportList[index].icon,
   });
   supportOption.imgList.push(supportList[index].img);
@@ -66,6 +67,10 @@ const currentSupportImg = computed(() => {
   const list = supportOption.imgList;
   return list[index] ?? list[0];
 });
+
+const TabsCurrentColor = computed(()=>{
+  return supportOption.tabs.list[supportOption.tabs.current]?.color??"primary"
+})
 
 const ColClick = (item: any): void => {
   if (item.type == "route") {

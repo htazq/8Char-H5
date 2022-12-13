@@ -1,24 +1,41 @@
 <template>
-	<view class="flex relative flex-row flex-row-start-center px-24" 
-	:class="[props.direction=='horizontal'?'flex-row':'']"
+	<!-- #ifdef MP-WEIXIN -->
+	<view class="flex relative" 
+	:class="[props.direction=='horizontal'?'flex-row flex-row-center-center' :'']"
+	ref="contentbody"
 	>
 		<slot name="default"></slot>
-		<view style="clear:both;" :style="[{height:contentHeight+'rpx'}]"></view>
 	</view>
+	<!-- #endif -->
+	<!-- #ifndef MP-WEIXIN -->
+	<view class="flex flex-row flex-row-center-center">
+		<view class="flex relative"
+		:style="{width:widthComputed}"
+		:class="[props.direction=='horizontal'?'flex-row flex-row-center-center' :'']"
+		ref="contentbody"
+		>
+			<slot name="default"></slot>
+		</view>
+	</view>
+	<!-- #endif -->
 </template>
 <script lang="ts" setup>
 /**
  * 步骤条
  * @description 步骤条，可以方便的预览逻辑，事务条理。需要配合tm-steps-item组件，必须放置tm-steps-item组件才能使用。
  */
-import { computed,provide,ref ,onBeforeMount, watch } from "vue"
+import { number } from "echarts";
+import { computed,provide,ref ,getCurrentInstance, watch,onUpdated,onMounted ,nextTick, PropType} from "vue"
+// #ifdef APP-PLUS-NVUE
+const dom = uni.requireNativePlugin('dom')
+// #endif
 const props = defineProps({
 	/**
 	 * 步骤条显示的方向。
 	 * horizontal|vertical
 	 */
 	direction:{
-		type:String,
+		type:String as PropType<"horizontal"|"vertical">,
 		default:"horizontal"
 	},
 	//当前的步骤。可使用v-model:current
@@ -36,7 +53,7 @@ const props = defineProps({
 	 * 'wait' | 'process' | 'finish' | 'error'
 	 */
 	status:{
-		type:String,
+		type:String as PropType<'wait' | 'process' | 'finish' | 'error'>,
 		default:""
 	},
 	//是否显示连线。
@@ -56,11 +73,7 @@ const props = defineProps({
 		type:[Function,Boolean],
 		default:()=>false
 	},
-	//这是内容撑开，如果不设置将无法清除浮动，造成底部内容往推。因为在mp小程序中无法自定组件本身使用flex布局。除nvue其它端统一设置高度。
-	contentHeight:{
-		type:Number,
-		default:160
-	},
+
 	//这里提供，如果子组件tm-steps-item没有提供使用此值。如果子组件提供了，不会使用这里的参数。
 	//未激活时的主题色
 	color:{
@@ -86,22 +99,24 @@ const props = defineProps({
  * step-click 当点击步骤时触发。
  */
 const emits = defineEmits(['change','update:current','step-click'])
+const proxy = getCurrentInstance()?.proxy??null;
 const _current = ref(props.defaultCurrent??-1);
-provide("tmStepsCureent",computed(()=>_current.value));
 const _countCurrent = ref(-1);
-provide("tmStepsCountCureent",computed(()=>_countCurrent.value))
-provide("tmStepsCountActiveColor",computed(()=>props.activeColor))
-provide("tmStepsCountColor",computed(()=>props.color))
-
-
+const _width = ref(0)
+const widthComputed = computed(()=>Math.ceil(uni.upx2px(_width.value))+'px')
 
 const compoenentName = "tmSteps"
 
-function pushKey(){
+function pushKey(width:number=150){
 	_countCurrent.value+=1;
+	_width.value +=width
 	return _countCurrent.value;
 }
-
+function delKey(width:number=150){
+	_countCurrent.value-=1;
+	_width.value -=width
+	return _countCurrent.value;
+}
 watch(()=>props.current,()=>{
 	_current.value = props.current;
 	emits('change',_current.value)
@@ -114,7 +129,14 @@ function steplick(index:number){
 	emits('update:current',_current.value)
 }
 
-defineExpose({pushKey,compoenentName,steplick})
+
+
+provide("tmStepsCureent",computed(()=>_current.value));
+provide("tmStepsCountCureent",computed(()=>_countCurrent.value))
+provide("tmStepsCountActiveColor",computed(()=>props.activeColor))
+provide("tmStepsCountColor",computed(()=>props.color))
+
+defineExpose({pushKey,compoenentName,steplick,delKey})
 </script>
 
 <style></style>

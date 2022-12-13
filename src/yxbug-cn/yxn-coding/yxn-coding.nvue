@@ -2,7 +2,7 @@
 	<view class="mb-20">
 		<tm-sheet :margin="[0, 0]" :round="3" :shadow="2">
 			<view class="flex flex-row flex-row-center-center">
-				<tm-image :height="400" :src="`/static/icon/other/coding${index}.svg`" :width="400" class="mt-40"></tm-image>
+				<tm-image :height="400" :src="GetFileUrl(`static/icon/other/coding${index}.svg`)" :width="400" class="mt-40"></tm-image>
 			</view>
 			<tm-text :font-size="42" :label="props.title" class="flex-center text-weight-b mt-40"></tm-text>
 			<tm-text :font-size="32" class="flex-center text-weight-b mt-30" label="功能调试中,敬请期待!"></tm-text>
@@ -12,6 +12,7 @@
 </template>
 
 <script lang="ts" setup>
+	import { GetFileUrl } from '@/tool/utils';
 const props = defineProps({
 	index: {
 		type: String,

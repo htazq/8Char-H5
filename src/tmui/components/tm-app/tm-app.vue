@@ -118,8 +118,8 @@
 			type: Object as Proptype<{background:string,fontColor:'#ffffff'|'#000000'}>,
 			default: () => {
 				return {
-					background: '#ffffff',
-					fontColor: '#000000'
+					background: '',
+					fontColor: ''
 				};
 			}
 		},
@@ -271,6 +271,11 @@
 			}
 
 			// #endif
+			
+			// #ifdef APP
+			plus.navigator.setStatusBarStyle('light');
+			// #endif
+			
 			if (isTabbarPage) {
 				uni.setTabBarStyle({
 					backgroundColor: '#000000',
@@ -283,11 +288,35 @@
 		} else {
 			// #ifndef MP-ALIPAY
 			if (!sysinfo.isCustomHeader) {
-				uni.setNavigationBarColor({
-					backgroundColor: props.navbar.background,
-					frontColor: props.navbar.fontColor
-				})
+				let nowPageConfigs = uni.$tm.pages.filter((el)=>el.path==nowPage?.route)
+				if(nowPageConfigs.length>0&&!props.navbar.background){
+					let tcolor = nowPageConfigs[0].navigationBarTextStyle;
+					tcolor = tcolor.toLocaleLowerCase()
+					tcolor = tcolor == 'black'?'#000000':tcolor
+					tcolor = tcolor == 'white'?'#ffffff':tcolor
+					uni.setNavigationBarColor({
+						backgroundColor: nowPageConfigs[0].navigationBarBackgroundColor,
+						frontColor: tcolor,
+					})
+					uni.setStorageSync("tmuiNavStyle",JSON.stringify({
+							navbarBackground:nowPageConfigs[0].navigationBarBackgroundColor,
+							navbarFontColor:tcolor
+						}))
+				}else{
+					uni.setNavigationBarColor({
+						backgroundColor: props.navbar.background,
+						frontColor: props.navbar.fontColor
+					})
+					uni.setStorageSync("tmuiNavStyle",JSON.stringify({
+							navbarBackground: props.navbar.background,
+							navbarFontColor:props.navbar.fontColor
+						}))
+				}
+				
 			}
+			// #endif
+			// #ifdef APP
+			plus.navigator.setStatusBarStyle('dark');
 			// #endif
 			if (isTabbarPage) {
 				uni.setTabBarStyle({
@@ -295,7 +324,7 @@
 					borderStyle: uni.$tm.tabBar.borderStyle || '#888888',
 					color: uni.$tm.tabBar.color || props.navbar.fontColor,
 					selectedColor: uni.$tm.tabBar.selectedColor || tmcomputed.value.textColor
-				})
+				}).catch(e=>{})
 			}
 
 		}
@@ -322,6 +351,7 @@
 		}
 		appConfig.value.dark = maindark;
 		store.setTmVuetifyDark(maindark)
+		setAppStyle()
 	}
 
 	//向ref外层公开本组件的特定方法。

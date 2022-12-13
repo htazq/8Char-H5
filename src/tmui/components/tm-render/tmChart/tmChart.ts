@@ -11,9 +11,9 @@ import {
 	getColorFromRgbValue
 } from "@/tmui/components/tm-render/crender/index"
 import  { baseConfig } from "./lib/baseConfig"
-import type { chartBaseConfig,PIE } from "./interface"
+import type { chartBaseConfig,PIE,RING,LINE } from "./interface"
 import colors  from "./lib/colors"
-import {pieDraw}  from "./lib/pie"
+import {pieDraw,ringDraw,lineDraw}  from "./lib"
 export class tmCharts {
 	render:CRenderTypes|null = null;
 	private config:chartBaseConfig
@@ -27,8 +27,13 @@ export class tmCharts {
 		return this;
 	}
 	
-	pie(selfConfig:PIE.basePie=baseConfig.pie){
+	pie(selfConfig:PIE.base=baseConfig.pie){
 		return new pieDraw(this.render,{...this.config.pie,...selfConfig})
 	}
-	
+	ring(selfConfig:RING.base=baseConfig.ring){
+		return new ringDraw(this.render,{...this.config.ring,...selfConfig})
+	}
+	line(selfConfig:LINE.base=baseConfig.line){
+		return new lineDraw(this.render,{...this.config.line,...selfConfig})
+	}
 }

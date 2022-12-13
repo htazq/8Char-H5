@@ -2,13 +2,13 @@ import {useBaziStore} from '@/store/bazi';
 import {Solar} from 'lunar-javascript';
 import {shishenTiangan, shishenDizhi} from '@/config/shishen-ganzhi';
 import {
-    chengguYearAtom,
-    chengguMonthAtom,
-    chengguDayAtom,
-    chengguTimeAtom,
-    chengguResult
-} from '@/config/book/chenggu';
-import {tianganList, dizhiList, shengxiaoList} from "@/config/common"
+    CHENGGU_YEAR_ATOM,
+    CHENGGU_MONTH_ATOM,
+    CHENGGU_DAY_ATOM,
+    CHENGGU_TIME_ATOM,
+    CHENGGU_RESULT
+} from '@/config/book/chengGu';
+import {baseUrl,tianganList, dizhiList, shengxiaoList} from "@/config/common"
 import {wuxingLabelList} from '@/config/data/wuxing.ts';
 import {wuxingToShishenList} from '@/config/data/wuxing';
 
@@ -21,7 +21,7 @@ export const HideTimeSecond = (time: any): string => {
 
 // 天罡称骨计算
 export const ChengGuComputed = (y: string, m: number, d: number, t: number): {} => {
-    let total = chengguYearAtom[y] + chengguMonthAtom[m - 1] + chengguDayAtom[d - 1] + chengguTimeAtom[t];
+    let total = CHENGGU_YEAR_ATOM[y] + CHENGGU_MONTH_ATOM[m - 1] + CHENGGU_DAY_ATOM[d - 1] + CHENGGU_TIME_ATOM[t];
     total = total.toFixed(1)
     const chineseNumber = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
     var key = '';
@@ -33,7 +33,7 @@ export const ChengGuComputed = (y: string, m: number, d: number, t: number): {} 
         if (diff[0] != 0) key = chineseNumber[diff[0] - 1] + '两';
         if (diff[1] != 0) key += chineseNumber[diff[1] - 1] + '钱';
     }
-    const chenggu = chengguResult[key] ?? {}
+    const chenggu = CHENGGU_RESULT[key] ?? {}
     chenggu.total = key
     return chenggu;
 }
@@ -115,7 +115,7 @@ export const GetChineseZodiac = sx => {
     } else {
         path = `/site/logo.svg`
     }
-    return `/static/icon${path}`;
+    return GetFileUrl(`static/icon${path}`);
 }
 
 // 计算五行个数
@@ -146,4 +146,9 @@ export const ComputedWuXing = (obj: any, type = "default") => {
 export const TianGanToShiShen = (str: string): string[] => {
     const list = wuxingToShishenList;
     return list[wuxingLabelList.indexOf(str)];
+}
+
+// 处理CDN静态资源
+export const GetFileUrl = path => {
+	return baseUrl + path;
 }

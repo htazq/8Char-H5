@@ -1,11 +1,11 @@
 <template>
 	<view class="flex flex-col overflow" :class="[disabled ? 'opacity-7' : '']">
 		<tm-sheet :transprent="props.transprent" @click="openAndClose"  
-		:color="props.color" :text="disabled" :border="isActive?0:cborder" :linear="props.linear"
+			:color="props.color" :text="disabled" :border="isActive?0:cborder" :linear="props.linear"
 			:linearDeep="props.linearDeep"  :dark="props.dark"
 			:followDark="props.followDark" :followTheme="props.followTheme" borderDirection="bottom" :margin="props.margin" :padding="props.padding"
 			>
-			<view :style="{height:props.height+'rpx'}" :userInteractionEnabledn="false" class="flex-row-center-start flex-row ">
+			<view :style="{height:props.height+'rpx'}" :userInteractionEnabled="false"  class="flex-row-center-start flex-row ">
 				<view v-if="_tmCollapseIconPos=='left'" class="pr-16 flex-center">
 					<tm-icon  :dark="props.dark"  :followDark="props.followDark"
 						 :color="isActive ? props.activeColor : 'grey-1'"
@@ -33,8 +33,16 @@
 				</view>
 			</view>
 		</tm-sheet>
-		
-		<view v-if="isActive" class="flex overflow">
+		<!-- v-if="isActive" -->
+		<view v-if="_contentHeight"  class="flex overflow">
+			<view class="flex content flex-col flex-1"  :class="[ isActiveAfter?'on':'']" :style="[
+				_contentHeight&&isActiveAfter?{height:_contentHeight}:'',
+				_contentHeight&&!isActiveAfter?{height:'0px',overflow:'hidden'}:'',
+			]">
+				<slot></slot>
+			</view>
+		</view>
+		<view v-if="!_contentHeight&&isActive"   class="flex overflow">
 			<view class="flex content flex-col flex-1"  :class="[ isActiveAfter?'on':'']">
 				<slot></slot>
 			</view>
@@ -85,8 +93,13 @@ const props = defineProps({
 		default: 30
 	},
 	height: {
-		type: Number,
+		type: [Number],
 		default: 88
+	},
+	//如果指定了高度。可以全平台显示展开动画。否则在nvue端没有动画。
+	contentHeight: {
+		type: [Number,String],
+		default: 0
 	},
 	//标识，用来展开和关闭的标识。
 	name: {
@@ -125,6 +138,15 @@ const _tmCollapseIconPos = inject("tmCollapseIconPos", computed(()=>"left"))
 const _tmCollapsecloseIcon = inject("tmCollapsecloseIcon", computed(()=>"tmicon-caret-right"))
 const _tmCollapseopenIcon = inject("tmCollapseopenIcon", computed(()=>"tmicon-sort-down"))
 const _leftIcon = computed(()=>props.leftIcon)
+const _contentHeight = computed(()=>{
+	if(!props.contentHeight) return 0;
+	if(typeof props.contentHeight == 'string') return props.contentHeight;
+	return uni.upx2px(props.contentHeight)+'px'
+})
+const isNvue = ref(false)
+// #ifdef APP-NVUE
+isNvue.value = true
+// #endif
 const isActiveAfter = ref(false)
 //父级方法。
 let parent:any = proxy?.$parent
@@ -169,10 +191,20 @@ function openAndClose(e:Event) {
 </script>
 
 <style scoped>
+/* #ifdef APP-NVUE */
+.content{
+	transition-duration: 0.3s;
+	transition-timing-function:ease;
+	transition-delay: 0ms;
+	transition-property: height;
+}
+
+/* #endif */
+
 /* #ifndef APP-NVUE */
 .content{
-	transition-duration: 1s;
-	transition-timing-function:linear;
+	transition-duration: 0.3s;
+	transition-timing-function:ease;
 	transition-delay: 0ms;
 	transition-property: max-height;
 	max-height: 0px;
@@ -181,7 +213,7 @@ function openAndClose(e:Event) {
 	will-change: max-height;
 }
 .content.on{
-	max-height:1000px;
+	max-height:800px;
 }
 .content.off{
 	max-height:0px;

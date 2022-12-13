@@ -55,15 +55,15 @@ export namespace  GraphShapeTypes{
 		side?: number
     }
     export interface polyline{
-        points?: Array<number>,
+        points?: Array<[number,number]>,
 		close?: boolean
     }
     export interface smoothline{
-        points?: Array<number>,
+        points?: Array<[number,number]>,
 		close?: boolean
     }
     export interface bezierCurve{
-        points?: Array<number>,
+        points?: Array<[number,number]>,
 		close?: boolean
     }
     export interface text{
@@ -118,7 +118,7 @@ export type CRenderGraphStyle = {
   lineCap?: 'butt'|'round'|'square',
   lineJoin?: 'round'|'bevel'|'miter',
 
-  lineDash?: [number,number],
+  lineDash?: Array<number>,
   lineDashOffset?: number,
   shadowBlur?: number,
   shadowColor?:  string|Array<number>,
@@ -146,7 +146,6 @@ export type CRenderGraphStyle = {
   textBaseline?: 'top'|'bottom'|'middle'|'alphabetic'|'hanging',
 
   gradientColor?: Array<string>,
-
   gradientType?: 'linear' | 'radial',
   /**
    * @description Gradient params
@@ -172,7 +171,8 @@ export type CRenderGraphStyle = {
    * @example colors = ['#000', '#111', '#222', 'red' ]
    * @example colors = { a: '#000', b: '#111' }
    */
-  colors?: null|Array<string>|{a?:string,b?:string,[key:string]:any}
+  colors?: null|Array<string>|{a?:string,b?:string,[key:string]:any},
+  [key:string]:any
 }
 export type CRenderGraphShape = GraphShapeTypes.arc|GraphShapeTypes.arrow|GraphShapeTypes.bezierCurve|GraphShapeTypes.circle
 |GraphShapeTypes.ellipse|GraphShapeTypes.image|GraphShapeTypes.path|GraphShapeTypes.polyline|GraphShapeTypes.polyline
@@ -211,7 +211,8 @@ export interface CRenderGraphsConfig {
      touchend?: (this:CRenderGraph,arg:{x:number,y:number,isCheck:boolean})=>void,
 	 
     shape?:CRenderGraphShape,
-    style?:CRenderGraphStyle
+    style?:CRenderGraphStyle,
+	[key:string]:any
     
 }
 export interface CRenderGraph extends CRenderGraphsConfig{

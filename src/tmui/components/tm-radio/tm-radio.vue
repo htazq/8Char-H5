@@ -1,8 +1,8 @@
 <template>
-	<view class="flex flex-col flex-wrap overflow" :class="[_disabled?'opacity-5':'']" style="flex-wrap:wrap;">
+	<view class="flex " :class="[_disabled?props.disabledClass:'',tmCheckedBoxDir=='row'?'flex-row':'',tmCheckedBoxDir=='customCol'?'flex-1':'']">
 		<view @click="hanlerClick" class="flex flex-row flex-row-center-start flex-1">
 
-			<tm-sheet v-if="props.custom" :linear="props.linear" :linearDeep="props.linearDeep" :followTheme="props.followTheme"
+			<tm-sheet parenClass="flex-shrink" class="flex-shrink" v-if="props.custom" :linear="props.linear" :linearDeep="props.linearDeep" :followTheme="props.followTheme"
 				:followDark="props.followDark" :dark="props.dark" :shadow="props.shadow" :userInteractionEnabled="false"
 				:width="_is_radio?props.size:0" :height="_is_radio?props.size:0" :text="(!_checked)"
 				:border="props.border" :border-style="props.borderStyle" :transprent="props.transprent"
@@ -13,15 +13,12 @@
 				</tm-translate>
 				<tm-text v-if="!_is_radio" :font-size="props.fontSize" :label="props.label"></tm-text>
 			</tm-sheet>
-			<view :userInteractionEnabled="false">
-				<slot>
-					<view class="flex-1 flex-row flex-row-cneter-cneter" style="flex-wrap:wrap;">
-						<tm-text class="flex-1 flex-wrap"  v-if="_is_radio"
-							:font-size="props.fontSize" :label="props.label"></tm-text>
-					</view>
+			<view class="flex-1">
+				<slot name="default" :checked="{checked:_checked}">
+					<tm-text :userInteractionEnabled="false" class="flex-1 flex-wrap"  v-if="_is_radio" :font-size="props.fontSize" :label="props.label"></tm-text>
 				</slot>
 			</view>
-			
+
 		</view>
 	</view>
 </template>
@@ -121,51 +118,26 @@
 			type: String,
 			default: "tmicon-check"
 		},
-
+		disabledClass:{
+			type:String,
+			default:"opacity-5"
+		}
 	})
 
 	const _checked = ref(props.defaultChecked ?? false)
 	const _groupCheckedVal = inject('tmRadioBoxVal', computed(() => ''));
 	const tmCheckedBoxDisabled = inject('tmRadioBoxDisabled', computed(() => false));
 	const _is_radio = inject('tmRadioBoxModel', computed(() => false));
+	const tmCheckedBoxDir = inject('tmCheckedBoxDir',computed(()=>'row'));
 	const _disabled = computed(() => props.disabled || tmCheckedBoxDisabled.value)
-	//父级方法。
-	let parent:any = proxy?.$parent
-
-	while (parent) {
-		if (parent?.checkBoxkeyId == 'tmRadioBoxGroup' || !parent) {
-			break;
-		} else {
-			parent = parent?.$parent ?? undefined
-		}
-	}
-	if (parent) {
-		parent.pushKey(props.value)
-	}
-
-	/** -----------form专有------------ */
-	//父级方法。
-	const tmFormFun = inject("tmFormFun", computed(() => ""))
-	watch(tmFormFun, () => {
-		if (tmFormFun.value == 'reset') {
-			emits('update:modelValue', "")
-			if (parent) {
-				parent?.addKey("")
-			}
-			_checked.value = false
-		}
-	})
-
-	/** -----------end------------ */
-
-
-	function vailChecked() {
+	function vailChecked(val?:string|number|boolean) {
 		let checked_val = false;
+		let val_self = typeof val ==='undefined'?_groupCheckedVal.value:val
 		if (props.modelValue === props.value && typeof props.value !== 'undefined' && props.value !== '' && props
 			.modelValue !== '') {
 			checked_val = true;
 		}
-		if (props.value === _groupCheckedVal.value && _groupCheckedVal.value !== '' && props.value !== '') {
+		if (props.value === val_self && val_self !== '' && props.value !== '') {
 			checked_val = true;
 		}
 		return checked_val;
@@ -175,10 +147,11 @@
 		emits('update:modelValue', props.value)
 	}
 	async function hanlerClick() {
+		emits("click")
 		if (_disabled.value || _checked.value) {
 			return;
 		}
-
+	
 		if (typeof props.beforChecked === 'function') {
 			uni.showLoading({
 				title: "...",
@@ -198,8 +171,26 @@
 		emits('update:modelValue', props.value)
 		emits('change', _checked.value)
 	}
-	watch([() => props.modelValue, _groupCheckedVal], () => {
+	watch([()=>props.modelValue,()=>props.value,()=>_groupCheckedVal.value],()=>{
 		_checked.value = vailChecked()
-		
-	})
+	},{deep:true})
+	const _blackValue = _groupCheckedVal.value
+	
+	//父级方法。
+	let parent:any = proxy?.$parent
+
+	while (parent) {
+		if (parent?.checkBoxkeyId == 'tmRadioBoxGroup' || !parent) {
+			break;
+		} else {
+			parent = parent?.$parent ?? undefined
+		}
+	}
+	if (parent) {
+		parent.pushKey(props.value)
+	}
+
+
+
+
 </script>

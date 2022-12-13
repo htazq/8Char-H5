@@ -871,7 +871,7 @@ export const polyline = {
 		}
 	}) {
 		ctx.beginPath()
-
+		console.log(6)
 		let {
 			points,
 			close
@@ -976,11 +976,22 @@ export const smoothline = {
 		} = shape
 
 		if (!cache.points || cache.points.toString() !== points.toString()) {
-			const bezierCurve = polylineToBezierCurve(points, close)
+			let cp = points;
+			// 这里要做个判断.因为贝尔曲线.少于3个点会报错的.
+			if(points.length==1){
+				cp = [points[0],points[0],points[0]]
+			}else if(points.length==2){
+				cp = [
+					points[0],
+					[Math.ceil((points[0][0]+points[1][0])/2),Math.ceil((points[0][1]+points[1][1])/2)],
+					points[1]
+				]
+			}
+			const bezierCurve = polylineToBezierCurve(cp, close)
 			const hoverPoints = bezierCurveToPolyline(bezierCurve)
 
 			Object.assign(cache, {
-				points: deepClone(points, true),
+				points: deepClone(cp, true),
 				bezierCurve,
 				hoverPoints
 			})
@@ -1227,9 +1238,7 @@ export const text = {
 
 			return false
 		}
-		this.textWidth = 0
-		this.textHeight = 0
-
+		
 		return true
 	},
 	measureSize(ctx, text) {
@@ -1238,12 +1247,53 @@ export const text = {
 			metrics;
 		_context.save();
 		_context.font = ctx.font;
-		metrics = _context.measureText(text + "");
+		let width = this.measureText(ctx,text + "",fontSize);
 		_context.restore();
 		return {
-			width: metrics.width,
+			width: width,
 			height: fontSize,
 		};
+	},
+	measureText(ctx, text,fontSize) {
+		let width = 0;
+		let context = ctx
+		// #ifdef MP-ALIPAY || MP-BAIDU || APP-NVUE
+		context = undefined;
+		// #endif
+		if (context !== false && context !== undefined && context.setFontSize && context.measureText) {
+			context.setFontSize(fontSize);
+			return context.measureText(text).width;
+		} else {
+			var text = text.split('');
+			for (let i = 0; i < text.length; i++) {
+				let item = text[i];
+				if (/[a-zA-Z]/.test(item)) {
+					width += 7;
+				} else if (/[0-9]/.test(item)) {
+					width += 5.5;
+				} else if (/\./.test(item)) {
+					width += 2.7;
+				} else if (/-/.test(item)) {
+					width += 3.25;
+				} else if (/:/.test(item)) {
+					width += 2.5;
+				} else if (/[\u4e00-\u9fa5]/.test(item)) {
+					width += 10;
+				} else if (/\(|\)/.test(item)) {
+					width += 3.73;
+				} else if (/\s/.test(item)) {
+					width += 2.5;
+				} else if (/%/.test(item)) {
+					width += 8;
+				} else {
+					width += 10;
+				}
+			}
+
+			return width * fontSize / 10;
+		}
+
+		
 	},
 	draw({
 		ctx,
@@ -1271,7 +1321,6 @@ export const text = {
 		const fontSize = parseInt(font.replace(/\D/g, ''))
 		
 		let [x, y] = position
-		
 		content = content.split('\n')
 		const rowNum = content.length
 		
@@ -1302,21 +1351,18 @@ export const text = {
 		// #endif
 		let maxwi = []
 		ctx.beginPath()
-		// ctx.setFillStyle("#FF0000")
 		for(let i=0;i<content.length;i++){
 			let text = content[i]
-			
-			ctx.fillText(text, ...position[i], w)
+			let txw = this.measureText(ctx,text+'',fontSize);
 			if (lineWidth > 0) {
-				ctx.strokeText(text, ...position[i], maxWidth)
+				txw = text.split("").length * lineWidth + txw
+				ctx.strokeText(text, ...position[i], txw)
+			}else{
+				ctx.fillText(text, ...position[i],txw)
 			}
+			maxwi.push(Math.ceil(txw))
+			
 		}
-		// ctx.setFillStyle("#FF0000")
-		
-		// ctx.fill()
-		// ctx.draw()
-		// console.log(ctx)
-		// return;
 		if (lineWidth > 0) {
 			ctx.stroke()
 		}
@@ -1337,9 +1383,8 @@ export const text = {
 		} = style;
 		var w = this?.textWidth ?? 0;
 		var h = this?.textHeight ?? 0;
-
+		
 		let isCheck = false;
-
 		if (textBaseline == 'top') {
 			if (position[0] >= x && position[0] <= x + w && position[1] >= y && position[1] <= y + h) {
 				isCheck = true;

@@ -1,8 +1,9 @@
 <template>
 	<view class="flex flex-col overflow " :style="[
-		props.height && isDulitabs == false ? { height: height + 'rpx' } : '',
+		props.height &&!isDulitabs&&cacheTabs.lenght>0? { height: height + 'rpx' } : '',
 		{ width: props.width + 'rpx' },
 	]">
+
 		<!-- 此源码有uniapp bug.如果在nvue页面编译至h5平台时，开启enable-flexr后需要里面再套层view再写flex才能真正的开flex -->
 		<!-- 因此下面的内容作了条件编译分为nvue和非nvue -->
 		<!-- https://ask.dcloud.net.cn/question/143230 -->
@@ -10,7 +11,7 @@
 		<view @touchmove="onMove" @touchend="onEnd" @touchstart="onStart" @mousemove="onMove" @mouseup="onEnd"
 			@mouseleave="onEnd" @mousedown="onStart" ref="tabsDom"
 			:style="{ width: props.swiper ? `${totalWidth}px` : `${props.width}rpx`, transform: props.swiper ? `translateX(${directoStyle}px)` : `translateX(0px)` }"
-			v-if="_tabPos == 'bottom' && isDulitabs == false" :class="[!isEndMove || isNvue ? 'tmTabsPane' : '']"
+			v-if="_tabPos == 'bottom'&&!isDulitabs " :class="[!isEndMove || isNvue ? 'tmTabsPane' : '']"
 			class="flex flex-row flex-nowrap  overflow">
 			<slot></slot>
 		</view>
@@ -21,12 +22,12 @@
 		@touchstart="onStart" -->
 		<view @touchstart="spinNvueAni" ref="tabsDom"
 			:style="{ width: props.swiper ? `${totalWidth}px` : `${props.width}rpx`, transform: `translateX(0px)` }"
-			v-if="_tabPos == 'bottom' && isDulitabs == false" class="flex flex-row flex-nowrap  overflow">
+			v-if="_tabPos == 'bottom' &&!isDulitabs &&props.swiper" class="flex flex-row flex-nowrap  overflow">
 			<slot></slot>
 		</view>
 		<!-- #endif -->
 
-		<tm-sheet :transprent="props.transprent" :color="props.color" :followTheme="props.followTheme"
+		<tm-sheet :darkBgColor="props.darkBgColor" :transprent="props.transprent" :color="props.color" :followTheme="props.followTheme"
 			:dark="props.dark" :round="props.round" :shadow="props.shadow" :outlined="props.outlined"
 			:border="props.border" :borderStyle="props.borderStyle" :borderDirection="props.borderDirection"
 			:text="props.text" :linear="props.linear" :linearDeep="props.linearDeep" :margin="[0, 0]" :padding="[0, 0]"
@@ -51,7 +52,7 @@
 							" :width="props.itemWidth" _class="flex-col flex-col-center-center" :margin="[0, 0]" :padding="[20, 0]"
 							:height="props.itemHeight">
 							<view  :style="[props.itemWidth > 0 ? { width: props.itemWidth + 'rpx' } : {},{height:props.itemHeight+'rpx'}]"
-								class="flex flex-row flex-row-center-center">
+								class="flex flex-row flex-row-center-center relative flex-shrink">
 								<view class="flex flex-row flex-center">
 									<tm-icon :userInteractionEnabled="false" v-if="item.icon" _class="pr-5"
 										:color="item.key == _active ? props.activeFontColor : props.unSelectedColor"
@@ -65,13 +66,14 @@
 										:label="item.title">
 									</tm-text>
 								</view>
-								
-								<tm-badge v-if="!item.count&&item.dot" dot :color="item.dotColor">
-									<view :style="{ height: `${props.itemHeight/3}rpx` }"></view>
-								</tm-badge>
-								<tm-badge v-if="item.count&&!item.dot" :count="item.count" :color="item.dotColor">
-									<view :style="{ height: `${props.itemHeight-20}rpx` }"></view>
-								</tm-badge>
+								<view :userInteractionEnabled="false" v-if="!item.count&&item.dot"  :style="{height:12+'rpx',top:'12rpx',right:'-16rpx',width:isNvue?'flex-1':'100%'}" class="absolute t-0 r-0 flex flex-row flex-row-center-end">
+									<tm-badge dot :color="item.dotColor">
+									</tm-badge>
+								</view>
+								<view :userInteractionEnabled="false"  v-if="item.count&&!item.dot" :style="{height:(props.itemHeight-30)+'rpx',top:'10rpx',right:props.showTabsLineAni?0:-16+'rpx',width:isNvue?'flex-1':'100%'}" class="absolute t-0 r-0">
+									<tm-badge :count="item.count" :color="item.dotColor">
+									</tm-badge>
+								</view>
 							</view>
 						</tm-sheet>
 
@@ -104,10 +106,10 @@
 						:border="(item.key === _active ? modelStyle.border : 0)"
 						:transprent="(item.key === _active ? modelStyle.transprent : true)" :color="
 							(props.activeColor && item.key === _active ? props.activeColor : props.color)
-						" :width="props.itemWidth" _class="flex-center flex-row" :margin="[0, 0]" :padding="[20, 0]"
+						" :width="props.itemWidth" _class="flex-center flex-row" :margin="[0, 0]" :padding="[0, 0]"
 						:height="props.itemHeight" unit="rpx">
-						<tm-badge  :dot="item.dot" :count="item.count" :color="item.dotColor">
-							<view class="flex flex-row flex-center" :style="{height:(props.itemHeight-20)+'rpx'}">
+						<tm-badge :font-size="19" :dot="item.dot" :count="item.count" :color="item.dotColor">
+							<view class="flex flex-row flex-center px-20" :style="{height:(props.itemHeight-20)+'rpx'}">
 								<tm-icon :userInteractionEnabled="false" v-if="item.icon" _class="pr-5"
 									:color="item.key === _active ? props.activeFontColor : props.unSelectedColor"
 									:font-size="item.key === _active ? props.activeFontSize : props.itemFontSize"
@@ -147,19 +149,19 @@
 						" :width="_itemwidth" _class="flex-center flex-row" :margin="[0, 0]" :padding="[0, 0]"
 						:height="_itemheight" unit="px">
 						
-						<tm-badge  :dot="item.dot" :count="item.count" :color="item.dotColor">
-						<view class="flex flex-row flex-center">
-							<tm-icon :userInteractionEnabled="false" v-if="item.icon" _class="pr-5"
-								:color="item.key === _active ? props.activeFontColor : props.unSelectedColor"
-								:font-size="item.key === _active ? props.activeFontSize : props.itemFontSize"
-								:name="item.icon">
-							</tm-icon>
-							<tm-text :userInteractionEnabled="false"
-								:font-size="item.key === _active ? props.activeFontSize : props.itemFontSize"
-								:color="item.key === _active ? props.activeFontColor : props.unSelectedColor"
-								:label="item.title">
-							</tm-text>
-						</view>
+						<tm-badge :font-size="19" :dot="item.dot"  :count="item.count" :color="item.dotColor">
+							<view class="flex flex-row flex-center px-20" :style="{height:(props.itemHeight-20)+'rpx'}">
+								<tm-icon :userInteractionEnabled="false" v-if="item.icon" _class="pr-5"
+									:color="item.key === _active ? props.activeFontColor : props.unSelectedColor"
+									:font-size="item.key === _active ? props.activeFontSize : props.itemFontSize"
+									:name="item.icon">
+								</tm-icon>
+								<tm-text :userInteractionEnabled="false"
+									:font-size="item.key === _active ? props.activeFontSize : props.itemFontSize"
+									:color="item.key === _active ? props.activeFontColor : props.unSelectedColor"
+									:label="item.title">
+								</tm-text>
+							</view>
 						</tm-badge>
 						
 					</tm-sheet>
@@ -180,8 +182,9 @@
 		<view id="webIdTabs" @touchmove="onMove" @touchend="onEnd" @touchstart="onStart" @touchcancel="onEnd" @mousemove="onMove"
 			@mouseup="onEnd" @mouseleave="onEnd" @mousedown="onStart" ref="tabsDom"
 			:style="{ width: props.swiper ? `${totalWidth}px` : `${props.width}rpx`, transform: props.swiper ? `translateX(${directoStyle}px)` : `translateX(0px)` }"
-			v-if="_tabPos == 'top' && isDulitabs == false" :class="[!isEndMove || isNvue ? 'tmTabsPane' : '']"
+			v-if="_tabPos == 'top' &&!isDulitabs" :class="[!isEndMove || isNvue ? 'tmTabsPane' : '']"
 			class="flex flex-row flex-nowrap  overflow">
+			
 			<slot></slot>
 		</view>
 		<!-- #endif -->
@@ -192,7 +195,7 @@
 		<!-- @touchmove="onMove" @touchend="onEnd" @touchcancel="onEnd"  -->
 		<view @touchstart="spinNvueAni" @touchmove="onMove" ref="tabsDom"
 			:style="{ width: props.swiper ? `${totalWidth}px` : `${props.width}rpx`, transform: `translateX(0px)` }"
-			v-if="_tabPos == 'top'" class="flex flex-row flex-nowrap  overflow">
+			v-if="_tabPos == 'top' && !isDulitabs" class="flex flex-row flex-nowrap  overflow">
 			<slot></slot>
 		</view>
 		<!-- #endif -->
@@ -345,8 +348,25 @@ const props = defineProps({
 		type: String,
 		default: 'primary'
 	},
+	disAbledPull:{
+		type: Boolean,
+		default: true
+	},
+	//暗下强制的背景色，
+	//有时自动的背景，可能不是你想要暗黑背景，此时可以使用此参数，强制使用背景色，
+	//只能是颜色值。
+	darkBgColor: {
+	  type: String,
+	  default: ''
+	},
+	/** 当选中某一项时,内容会往前滚动的项目数量,类似于位置让选中项始终在中间. */
+	subtract:{
+		type: Number,
+		default: 2
+	}
 	
 });
+const _disAbledPull = computed(()=>props.disAbledPull)
 const _align = computed(() => {
 	let align_list = {
 		right: "flex-row-center-end",
@@ -537,16 +557,16 @@ function unbindKey(key: string | number) {
 	let index2: number = cacheTabs.value.findIndex((el) => el.key == _active.value);
 
 	if (index2 == -1 && cacheTabs.value.length > 0) {
-		changeKey(cacheTabs.value[0].key, false);
+		changeKey(cacheTabs.value[0].key, false,false);
 	} else if (cacheTabs.value.length == 0) {
-		changeKey("", false);
+		changeKey("", false,false);
 	}
 }
 watch(
 	() => props.activeName,
 	() => {
 		if(props.activeName==_active.value) return;
-		changeKey(props.activeName, false);
+		changeKey(props.activeName, false,false);
 	}
 );
 
@@ -580,8 +600,8 @@ watch(() => _active.value, () => {
 		let index = cacheTabs.value.findIndex(el => el.key == _active.value)
 
 		if (index > -1) {
-			if (typeof cacheTabs.value[index - 2] !== 'undefined') {
-				_scrollToId.value = tabsid + cacheTabs.value[index - 2]?.key;
+			if (typeof cacheTabs.value[index - props.subtract] !== 'undefined') {
+				_scrollToId.value = tabsid + cacheTabs.value[index - props.subtract]?.key;
 			} else {
 				_scrollToId.value = tabsid + cacheTabs.value[0]?.key;
 			}
@@ -689,10 +709,12 @@ function setDirXy(x: number, y: number, isEnd = false ) {
 		//第一和最后一张，不需要滑动。
 		if (activeIndex.value == 0) return;
 		directoStyle.value = x - nowLeft;
+		// #ifdef H5
 		let sx = Math.abs(sliderBarWidth) * 1.05;
 		sx =  Math.min(sx,sliderBarWidth);
 		sx =  Math.max(sx,_itemwidth);
 		widthDrag.value = sx
+		// #endif
 		if (isEnd) {
 			setRightDirRight()
 			widthDrag.value =sliderBarWidth
@@ -701,10 +723,12 @@ function setDirXy(x: number, y: number, isEnd = false ) {
 		//第一和最后一张，不需要滑动。
 		if (activeIndex.value == cacheTabs.value.length - 1) return;
 		directoStyle.value = x - nowLeft;
+		// #ifdef H5
 		let sx = Math.abs(_x.value) * 1.0002;
 		sx =  Math.min(sx,sliderBarWidth);
 		sx =  Math.max(sx,_itemwidth);
 		widthDrag.value = sx
+		// #endif
 		if (isEnd) {
 			setLeftDirLeft()
 			widthDrag.value = sliderBarWidth
@@ -717,6 +741,7 @@ function setDirXy(x: number, y: number, isEnd = false ) {
 
 		} else {
 			_active.value = cacheTabs.value[activeIndex.value - 1].key;
+			changeKey(_active.value, false);
 		}
 	}
 
@@ -725,6 +750,7 @@ function setDirXy(x: number, y: number, isEnd = false ) {
 			directoStyle.value = -nowLeft;
 		} else {
 			_active.value = cacheTabs.value[activeIndex.value + 1].key;
+			changeKey(_active.value, false);
 		}
 	}
 }
@@ -776,6 +802,7 @@ function setDirXyNvue(x: number, y: number, dirX = 'none' ) {
 			nowLeft = uni.upx2px((activeIndex.value) * props.width)
 			_startx.value = nowLeft
 			spinNvueAniEnd( -(nowLeft),0,250)
+			changeKey(_active.value, false);
 		}
 		
 	} else if (dirType.value == "left") {
@@ -795,6 +822,8 @@ function setDirXyNvue(x: number, y: number, dirX = 'none' ) {
 			nowLeft = uni.upx2px((activeIndex.value) * props.width)
 			_startx.value = nowLeft
 			spinNvueAniEnd( -(nowLeft),0,250)
+			
+			changeKey(_active.value, false);
 		}
 		
 	} 
@@ -879,17 +908,23 @@ function pushKey(o: tabsobj) {
 	}
 }
 
-function changeKey(key: string | number, isclick = true) {
+function changeKey(key: string | number, isclick = true,isNomarlChange=true) {
 	isEndMove.value = true;
 	_active.value = key;
 	// #ifdef APP-NVUE
 	_startx.value = uni.upx2px((activeIndex.value) * props.width)
 	// #endif
 	timeDetail = 1;
-	emits("change", key);
 	emits("update:activeName", toRaw(_active.value));
+	if(isNomarlChange){
+		nextTick(()=>{
+			emits("change", key);
+		})
+	}
 	if (isclick) {
-		emits("click", key);
+		nextTick(()=>{
+			emits("click", key);
+		})
 	}
 }
 
@@ -930,6 +965,10 @@ provide(
 provide(
 	"tabsSwiperIsMoveing",
 	computed(() => isMoveing.value)
+);
+provide(
+	"tabsSwiperDisAbledPull",
+	computed(() => props.disAbledPull)
 );
 
 defineExpose({

@@ -75,10 +75,11 @@
 	const vnodeCtx = proxy
 	const canvasId = ref("canvasId")
 	const sysinfo = uni.getSystemInfoSync()
-	const show = ref(false) //安卓上首次要隐藏不然卡。
+	const show = ref(true) //安卓上首次要隐藏不然卡。
 	let isAndroid = false
 	// #ifdef APP-NVUE
 	isAndroid = uni.getSystemInfoSync().osName=='android'
+	show.value = false
 	// #endif
 	
 	let canvaConfig = {
@@ -91,7 +92,7 @@
 	canvasId.value = "tm" + uni.$tm.u.getUid(5);
 	// #endif
 	let ctx:UniApp.CanvasContext;
-	let canvas2d:HTMLCanvasElement|null;
+	let canvas2d:UniApp.CanvasContext;
 
 	const _width = computed(()=>props.width)
 	const _height = computed(()=>props.height)
@@ -100,7 +101,7 @@
 		if(isAndroid){
 			setTimeout(function() {
 				show.value = true;
-			}, 250);
+			}, 200);
 		}else{
 			show.value = true;
 		}
@@ -108,7 +109,7 @@
 	})
 
 	
-	function init():Promise<tmChartsType>{
+	function init():Promise<tmCharts|CRenderTypes>{
 		return new Promise((res,rej)=>{
 			if(render){
 				res(render);
@@ -116,8 +117,12 @@
 			}
 			let delayTime = 150
 			if(isAndroid){
-				delayTime = 350
+				delayTime = 250
 			}
+			// #ifdef APP-VUE
+			delayTime = 50
+			// #endif
+			
 			setTimeout(async function () {
 				// #ifdef APP-NVUE
 				ctx = await drawNvue_init();
@@ -132,13 +137,13 @@
 				
 				// #ifndef MP-WEIXIN || MP-ALIPAY || MP-QQ || APP-NVUE
 				ctx = await appvueH5Other();
-				
 				// #endif
-				
-				ctx['width'] = uni.upx2px(_width.value)
-				ctx['height'] = uni.upx2px(_height.value)
+				ctx.width = uni.upx2px(_width.value)
+				ctx.height = uni.upx2px(_height.value)
 				ctx['dpr'] = Math.ceil(sysinfo.pixelRatio)
 				render = new CRender(ctx, proxy, canvas2d)
+				render.dpr = Math.ceil(sysinfo.pixelRatio)
+			
 				res(new tmCharts(render))
 			}, delayTime)
 		})
@@ -149,8 +154,8 @@
 			let c2d = uni.createCanvasContext(canvasId.value, vnodeCtx);
 			uni.createSelectorQuery().in(vnodeCtx)
 			.select(".canvas").boundingClientRect((result)=>{
-				canvaConfig.left = result.left;
-				canvaConfig.top = result.top;
+				canvaConfig.left = result?.left??0;
+				canvaConfig.top = result?.top??0;
 				c2d['dpr'] =sysinfo.pixelRatio
 				resolve(c2d)
 			}).exec()
@@ -161,6 +166,7 @@
 		return new Promise((resolve,rej)=>{
 			const query = uni.createSelectorQuery().in(vnodeCtx)
 			// #ifdef MP-ALIPAY
+			
 			query.select('#canvasId').node().exec((res2) => {
 			    const canvas = res2[0].node;
 				canvaConfig.left =  res2[0].left;
@@ -190,8 +196,6 @@
 					resolve({ctx2d:ctxvb,canvas:canvas})
 					// #endif
 					
-					
-					
 					// #ifdef MP-QQ
 					resolve({ctx2d:res[0].context,canvas:null})
 					// #endif
@@ -202,7 +206,7 @@
 	function drawNvue_init():Promise<UniApp.CanvasContext> {
 		return new Promise((resolve,reject)=>{
 			/*获取元素引用*/
-			var ganvas = vnodeCtx.$refs[canvasId.value];
+			var ganvas:any = vnodeCtx?.$refs[canvasId.value]??null;
 			dom?.getComponentRect(ganvas, function(res:any) {
 				canvaConfig.left = res?.size?.left??0
 				canvaConfig.top = res?.size?.top??0
@@ -210,7 +214,8 @@
 				var canvasObj = enable(ganvas, {
 					bridge: WeexBridge
 				});
-				resolve(canvasObj.getContext('2d'))
+				let cx  = canvasObj.getContext('2d');
+				resolve(cx)
 			})
 		})
 		
@@ -222,7 +227,7 @@
 				fa("初始化失败")
 				return;
 			}
-			let size = props.option.size??0;
+			let size = 500;
 			// #ifdef APP-NVUE
 			uni.showLoading({title:'...'})
 			// ctx.getImageData(0,0,props.width,props.height,function(res:imageData){
@@ -231,7 +236,7 @@
 			// 	uni.hideLoading()
 			// })
 			
-			ctx.toTempFilePath(0,0,size,size,uni.upx2px(size),uni.upx2px(size),"png",1,function(res){
+			ctx.toTempFilePath(0,0,size,size,uni.upx2px(size),uni.upx2px(size),"png",1,function(res:any){
 				uni.hideLoading()
 				console.log(res.errMsg)
 				if(res.errMsg=="canvasToTempFilePath:ok"){
@@ -268,49 +273,7 @@
 			// #endif
 		});
 	}
-	function getTextWidthAndPos(shape:CRenderGraph) {
-		// #ifdef APP-PLUS
-		return [0,0,0,0];
-		// #endif
-		if (!render) return [0, 0, 0, 0];
-		
-		let {
-			content,
-			position,
-			maxWidth,
-			rowGap
-		} =shape.shape
-		shape.shape
-		const {
-			textBaseline,
-			fontSize,
-			textAlign
-		} = shape.style
-	
-	
-		let [x, y] = position
-		let strAr = content.split('\n')
-		const rowNum = strAr.length
-		const lineHeight = fontSize + rowGap
-		const allHeight = rowNum * lineHeight - rowGap
-		const twidth = render.ctx.measureText(content + "").width;
-		if (textBaseline === 'middle') {
-	
-			y -= allHeight * rowNum + fontSize / 2
-		}
-	
-		if (textBaseline === 'bottom') {
-	
-			y += fontSize
-		}
-	
-		if (textAlign === 'center') {
-			x -= twidth / 2
-			y += fontSize
-		}
-		return [x, y, twidth, allHeight]
-		// measureText
-	}
+
 	
 	// ---------------
 	let dragGrpahId = ""
@@ -340,10 +303,9 @@
 		let gps = render.graphs;
 		let isClickGrpahs = gps.filter((el, index) => {
 			if (el.name == 'text') {
-				let rect = getTextWidthAndPos(el);
-				el.hoverRect = rect
+				el.hoverRect = [x,y,el.textWidth,el.textHeight]
 			}
-	
+			console.log(el.hoverCheck([x, y], el))
 			return el.hoverCheck([x, y], el) || el.hoverCheckProcessor([x, y], el);
 		});
 	

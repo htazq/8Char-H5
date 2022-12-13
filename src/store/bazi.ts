@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { useYunStore } from './yun';
+import { useBookStore } from './book';
 import { Solar, LunarUtil } from 'lunar-javascript';
 import { ChengGuComputed, ComputedWuXing, DeArray, TianGanToShiShen } from '@/tool/utils';
 import { wuxingLabelList } from '@/config/data/wuxing.ts';
@@ -291,12 +292,13 @@ export const useBaziStore = defineStore('bazi', {
 			const nextJieQiSolar = nextJieQi.getSolar();
 			this.jieqi = {
 				preName: prevJieQi.getName(),
-				preTime: preJieQiSolar.toYmdHms(),
+				preTime: preJieQiSolar.toYmdHms().replace(/-/g, '/'),
 				nextName: nextJieQi.getName(),
-				nextTime: nextJieQiSolar.toYmdHms()
+				nextTime: nextJieQiSolar.toYmdHms().replace(/-/g, '/'),
 			};
 
 			useYunStore().pull(yun.getDaYun());
+			useBookStore().DealList(timestamp, gender,data.sect)
 		}
 	}
 });

@@ -1,6 +1,5 @@
 <template>
 	<view>
-		<tm-notification v-if="noteShow" ref="note" label="当前时间不在大运范围内!"></tm-notification>
 		<view class="pa-20">
 			<view class="flex flex-row">
 				<view class="flex-6">
@@ -31,8 +30,6 @@ import {Solar} from "lunar-javascript"
 
 const baziStore = useBaziStore();
 const yunStore = useYunStore();
-const note = ref(null);
-const noteShow = ref(false)
 
 function GetStartYunLabel() {
   let str = '出生后';
@@ -52,7 +49,11 @@ function TaiSuiStatus() {
 }
 
 function CurrentAge() {
-  return yunStore.yearList[yunStore.yearIndex]?.age + "岁";
+	const index = yunStore.yearIndex
+	if(yunStore.yearList[index]?.age){
+		 return yunStore.yearList[index]?.age + "岁";
+	}
+	return ""
 }
 
 function SkipCurrentTime() {
@@ -61,11 +62,10 @@ function SkipCurrentTime() {
   const maxYear = originalList[originalList.length - 1].getEndYear()
   const currenYear = new Date().getFullYear()
   if (currenYear < minYear || currenYear > maxYear) {
-    // UI框架的一个Bug
-    noteShow.value = true;
-    // setTimeout(()=>{
-    // 	note.value.show()
-    // },400)
+    uni.showToast({
+    	icon:"none",
+			title:"当前时间不在大运范围内!"
+    })
   } else {
     for (let i = 0; i < originalList.length; i++) {
       const minYear = originalList[i].getStartYear()

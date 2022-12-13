@@ -1,3 +1,5 @@
+import { GetFileUrl } from '@/tool/utils';
+
 interface friendOpts {
 	icon: string;
 	title: string;
@@ -8,25 +10,26 @@ interface friendOpts {
 interface supportListOpts {
 	icon: string;
 	label: string;
+	color: string;
 	img: string;
 }
 
 export const friendList: friendOpts[][] = [
 	[
 		{
-			icon: '/static/icon/git/github.gif',
+			icon: GetFileUrl('static/icon/git/github.gif'),
 			title: 'GitHub',
 			type: 'route',
 			url: 'https://github.com/axbug/8Char-H5'
 		},
 		{
-			icon: '/static/icon/git/gitee.gif',
+			icon: GetFileUrl('static/icon/git/gitee.gif'),
 			title: 'Gitee',
 			type: 'route',
 			url: 'https://gitee.com/yxbug/8Char-H5'
 		},
 		{
-			icon: '/static/icon/git/coding.gif',
+			icon: GetFileUrl('static/icon/git/coding.gif'),
 			title: 'Coding',
 			type: 'route',
 			url: 'https://yxbug-cn.coding.net/public/yixue/8Char-H5/git/files'
@@ -34,19 +37,19 @@ export const friendList: friendOpts[][] = [
 	],
 	[
 		{
-			icon: '/static/icon/site/laboratory.gif',
+			icon: GetFileUrl('static/icon/site/laboratory.gif'),
 			title: 'Web实验室',
 			type: 'route',
 			url: 'https://app.yxbug.cn/'
 		},
 		{
-			icon: '/static/icon/site/logo.svg',
+			icon: GetFileUrl('static/icon/site/logo.svg'),
 			title: '作者博客',
 			type: 'route',
 			url: 'https://blog.yxbug.cn/'
 		},
 		{
-			icon: '/static/icon/other/support.svg',
+			icon: GetFileUrl('static/icon/other/support.svg'),
 			title: '赞助项目',
 			type: 'support'
 		}
@@ -55,19 +58,28 @@ export const friendList: friendOpts[][] = [
 
 export const supportList: supportListOpts[] = [
 	{
-		icon: 'tmicon-weixinzhifu',
-		label: '微信',
-		img: '/static/icon/support/wechat.gif'
-	},
-	{
 		icon: 'tmicon-alipay',
 		label: '支付宝',
-		img: '/static/icon/support/alipay.gif'
+		color:"primary",
+		img: GetFileUrl('static/icon/support/alipay.gif')
+	},
+	{
+		icon: 'tmicon-weixinzhifu',
+		label: '微信',
+		color:"green",
+		img: GetFileUrl('static/icon/support/wechat.gif')
 	},
 	{
 		icon: 'tmicon-QQ',
 		label: 'QQ',
-		img: '/static/icon/support/qq.gif'
+		color:"primary",
+		img: GetFileUrl('static/icon/support/qq.gif')
+	},
+	{
+		icon: 'tmicon-weixin',
+		label: '公众号',
+		color:"green",
+		img: GetFileUrl('static/icon/support/official-account.gif')
 	}
 ];
 

@@ -1,0 +1,37 @@
+<template>
+	<view>
+		<tm-tabs swiper :list="tabsOption.list" :width="750" :height="300" v-model:active-name="tabsOption.current"></tm-tabs>
+		<tm-sheet :margin="[0, 0]" :padding="[30, 0]">
+			<view class="mb-40" v-for="item in bookStore.list[tabsOption.current]?.content">
+				<view class="mb-10" v-if="item.title"><tm-text :label="item.title" color="deep-orange" :font-size="28" _class="text-weight-b"></tm-text></view>
+				<view><tm-text :label="item.content" :font-size="28"></tm-text></view>
+			</view>
+		</tm-sheet>
+	</view>
+</template>
+
+<script lang="ts" setup>
+import { ref, reactive, onMounted } from 'vue';
+import { useBookStore } from '@/store/book';
+const bookStore = useBookStore();
+const tabsOption = reactive({
+	list: [{ key: 0, title: '命主信息', icon: 'tmicon-tag-fill' }],
+	current: "0"
+});
+onMounted(() => {
+	const list = bookStore.list;
+	const tabList = [];
+	for (let i = 0; i < list.length; i++) {
+		const item = list[i];
+		tabList.push({
+			key: i,
+			title: item.title,
+			icon: item.icon
+		});
+	}
+	tabsOption.list = tabList;
+	tabsOption.current = 0;
+});
+</script>
+
+<style lang="scss" scoped></style>

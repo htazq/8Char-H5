@@ -10,7 +10,7 @@
 	"pages": [{
 			"path": "pages/home/index",
 			"style": {
-				"navigationBarTitleText": "八字排盘 - 阿轩的Bug",
+				"navigationBarTitleText": "八字排盘-阿轩的Bug",
 				"navigationStyle": "custom",
 				"titlePenetrate": "YES",
 				"transparentTitle": "always"
@@ -19,7 +19,7 @@
 		{
 			"path": "pages/detail/index",
 			"style": {
-				"navigationBarTitleText": "八字排盘 - 阿轩的Bug",
+				"navigationBarTitleText": "八字排盘-阿轩的Bug",
 				"navigationStyle": "custom",
 				"titlePenetrate": "YES",
 				"transparentTitle": "always"
@@ -28,7 +28,7 @@
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "八字排盘 - 阿轩的Bug",
+		"navigationBarTitleText": "八字排盘-阿轩的Bug",
 		"navigationBarBackgroundColor": "#FFFFFF",
 		"backgroundColor": "#FFFFFF"
 	},

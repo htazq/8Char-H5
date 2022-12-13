@@ -53,7 +53,12 @@ const ComputedScrollHeight = () => {
 		.select('#header')
 		.boundingClientRect(data => {
 			const height = sysinfo.safeArea.height - data.height;
+			// #ifdef MP-WEIXIN
+			scrollHeight.value = (height + 44) + 'px';
+			// #endif
+			// #ifndef MP-WEIXIN
 			scrollHeight.value = height + 'px';
+			// #endif
 			nextTick();
 		})
 		.exec();
